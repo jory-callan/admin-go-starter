@@ -1,0 +1,75 @@
+# ======================
+# 日志配置
+# ======================
+log:
+  level: "info"        # 日志级别: debug, info, warn, error
+  format: "json"       # 日志格式: json, text
+  output: "stdout"     # 输出目标: stdout 或文件路径
+  # file_path: "/var/log/app.log"
+  max_size: 100        # 单个日志文件最大 MB
+  max_backups: 5       # 保留旧日志文件数
+  max_age: 7           # 旧日志文件保留天数
+  compress: true       # 是否压缩
+
+# ======================
+# HTTP 服务配置
+# ======================
+http:
+  host: "0.0.0.0"
+  port: 8080
+  read_timeout: "10s"
+  write_timeout: "10s"
+  idle_timeout: "60s"
+  max_header_bytes: 1048576   # 1MB
+  max_body_size: 10485760     # 10MB
+
+# ======================
+# 数据库配置 (支持多实例，必须有 default)
+# ======================
+database:
+  default:
+    driver: "mysql"   # mysql, postgres, sqlite
+    dsn: "root:password@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
+    max_open_conns: 100
+    max_idle_conns: 10
+    conn_max_lifetime: 1800  # 秒
+    conn_max_idle_time: 300  # 秒
+    log_level: "warn"        # silent, error, warn, info
+
+  # primary:
+  #   driver: "mysql"
+  #   dsn: "user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
+  #   max_open_conns: 100
+  #   max_idle_conns: 10
+  #   conn_max_lifetime: 1800
+  #   conn_max_idle_time: 300
+  #   log_level: "warn"
+
+# ======================
+# Redis 配置 (支持多实例，必须有 default)
+# ======================
+redis:
+  default:
+    addr: "127.0.0.1:6379"
+    password: ""
+    db: 0
+    pool_size: 100
+    min_idle_conns: 10
+    dial_timeout: 5   # 秒
+    read_timeout: 3   # 秒
+    write_timeout: 3  # 秒
+
+  # cache:
+  #   addr: "127.0.0.1:6380"
+  #   password: ""
+  #   db: 1
+  #   pool_size: 50
+  #   min_idle_conns: 5
+
+# ======================
+# JWT 配置
+# ======================
+jwt:
+  secret: "change-me-to-32-char-secret-key!!!"
+  expires: "24h"
+  issuer: "aicode"

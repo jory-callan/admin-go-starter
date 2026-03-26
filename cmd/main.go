@@ -1,13 +1,13 @@
 package main
 
 import (
+	"aicode/app"
+	"aicode/config"
+	"aicode/internal"
 	"aicode/internal/router"
-	"aicode/pkg/app"
-	"aicode/pkg/config"
-	"aicode/pkg/db"
-	"aicode/pkg/logger"
-	"aicode/pkg/redis"
-	"log/slog"
+	pkglogger "aicode/pkg/logger"
+	"context"
+	"fmt"
 
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/cobra"
@@ -16,7 +16,7 @@ import (
 var configFile string
 
 func main() {
-	var rootCmd = &cobra.Command{
+	rootCmd := &cobra.Command{
 		Use:   "aicode",
 		Short: "Go Web Framework with RBAC",
 		Run:   run,
@@ -30,40 +30,43 @@ func main() {
 }
 
 func run(cmd *cobra.Command, args []string) {
-	// 1. 加载配置
-	conf := config.Load(configFile)
-
-	// 2. 初始化日志（设置全局默认）
-	logger.New(conf)
-
-	// 3. 初始化数据库
-	database := db.New(conf)
-
-	// 4. 初始化 Redis
-	rdb := redis.New(conf)
-
-	// 6. 创建 App 结构体
-	application := &app.App{
-		DB:    database,
-		Redis: rdb,
-		Conf:  conf,
-	}
-
-	// 6. 创建 Echo 实例
-	e := echo.New()
-
-	// 7. 注册路由和依赖装配
-	router.RegisterRoutes(e, application)
-
-	// 8. 启动服务
-	port := conf.GetString("server.port")
-	if port == "" {
-		port = "8080"
-	}
-	slog.Info("server starting", "port", port)
-
-	if err := e.Start(":" + port); err != nil {
-		slog.Error("failed to start server", "error", err)
+	// 1. 加载配置 (Default + Unmarshal 智能合并)
+	cfg, err := config.Load(configFile)
+	if err != nil {
 		panic(err)
 	}
+
+	// 2. 初始化 Logger（设置全局 slog 默认）
+	log := pkglogger.New(cfg.Log)
+
+	// 3. 创建 App 运行时
+	application := app.New(cfg, log)
+
+	// 4. 初始化基础设施 (DB, Redis...)
+	if err := application.Init(); err != nil {
+		log.Error("init infrastructure failed", "error", err)
+		panic(err)
+	}
+
+	// 5. 数据库迁移
+	internal.Migrate(application.DB)
+
+	// 6. 创建 HTTP Server
+	e := echo.New()
+	router.RegisterRoutes(e, application)
+
+	addr := fmt.Sprintf("%s:%d", cfg.HTTP.Host, cfg.HTTP.Port)
+	log.Info("server starting", "addr", addr)
+
+	// 7. 启动服务 (非阻塞)
+	go func() {
+		if err := e.Start(addr); err != nil {
+			log.Error("server stopped", "error", err)
+		}
+	}()
+
+	// 8. 等待信号并优雅退出
+	application.WaitForSignal(context.Background(), func(ctx context.Context) error {
+		return e.Shutdown(ctx)
+	})
 }

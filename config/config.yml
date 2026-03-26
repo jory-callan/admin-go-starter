@@ -1,19 +1,49 @@
-server:
-  port: "8080"
+# ======================
+# 日志配置
+# ======================
+log:
+  level: "info"       # debug, info, warn, error
+  format: "json"      # json, text
+  output: "stdout"    # stdout 或文件路径
 
-logger:
-  level: "info"    # debug / info / warn / error
-  format: "json"   # json / text
+# ======================
+# HTTP 服务配置
+# ======================
+http:
+  host: "0.0.0.0"
+  port: 8080
+  read_timeout: "10s"
+  write_timeout: "10s"
+  idle_timeout: "60s"
 
+# ======================
+# 数据库配置 (支持多实例)
+# ======================
 database:
-  driver: "sqlite"          # mysql / postgres / sqlite
-  dsn: "demo.sqlite.db"     # sqlite 用文件路径，mysql/postgres 用连接串
+  default:
+    driver: "sqlite"
+    dsn: "demo.sqlite.db"
+    max_open_conns: 50
+    max_idle_conns: 10
+    conn_max_lifetime: 1800  # 秒
+    conn_max_idle_time: 300  # 秒
+    log_level: "warn"
 
+# ======================
+# Redis 配置 (支持多实例)
+# ======================
 redis:
-  addr: "localhost:6379"
-  password: ""
-  db: 0
+  default:
+    addr: "localhost:6379"
+    password: ""
+    db: 0
+    pool_size: 100
+    min_idle_conns: 10
 
+# ======================
+# JWT 配置
+# ======================
 jwt:
   secret: "your-secret-key-change-in-production"
-  expire: 24h
+  expires: "24h"
+  issuer: "aicode"

@@ -5,7 +5,7 @@ import (
 	"aicode/internal/middleware"
 	"aicode/internal/repo"
 	"aicode/internal/service"
-	"aicode/pkg/app"
+	"aicode/app"
 	"github.com/labstack/echo/v4"
 )
 
