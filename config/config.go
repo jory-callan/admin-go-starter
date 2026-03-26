@@ -1,64 +1,45 @@
 package config
 
 import (
-	"time"
-
 	"aicode/pkg/database"
+	pkgdiscovery "aicode/pkg/discovery"
+	pkghttp "aicode/pkg/http"
+	pkgjwt "aicode/pkg/jwt"
+	pkgkafka "aicode/pkg/kafka"
 	pkglogger "aicode/pkg/logger"
+	pkgrabbitmq "aicode/pkg/rabbitmq"
 	pkgredis "aicode/pkg/redis"
+	pkgtracing "aicode/pkg/tracing"
 )
 
 // AppConfig 应用全局配置（强类型）
+// 所有子配置均引用 pkg 层各自的 Config 结构体，统一由各包的 DefaultConfig() 提供默认值
 type AppConfig struct {
-	Log      pkglogger.Config               `mapstructure:"log" yaml:"log"`
-	HTTP     HTTPConfig                      `mapstructure:"http" yaml:"http"`
-	Database map[string]database.Config      `mapstructure:"database" yaml:"database"` // 多实例数据库
-	Redis    map[string]pkgredis.Config      `mapstructure:"redis" yaml:"redis"`       // 多实例 Redis
-	JWT      JWTConfig                       `mapstructure:"jwt" yaml:"jwt"`
+	Log             pkglogger.Config         `mapstructure:"log" yaml:"log"`
+	HTTP            pkghttp.Config            `mapstructure:"http" yaml:"http"`
+	Database        database.Config           `mapstructure:"database" yaml:"database"`
+	LogDatabase     *database.Config          `mapstructure:"log_database" yaml:"log_database"`
+	AnalyticsDB     *database.Config          `mapstructure:"analytics_database" yaml:"analytics_database"`
+	Redis           pkgredis.Config           `mapstructure:"redis" yaml:"redis"`
+	CacheRedis      *pkgredis.Config          `mapstructure:"cache_redis" yaml:"cache_redis"`
+	SessionRedis    *pkgredis.Config          `mapstructure:"session_redis" yaml:"session_redis"`
+	JWT             pkgjwt.Config             `mapstructure:"jwt" yaml:"jwt"`
+	Kafka           *pkgkafka.Config          `mapstructure:"kafka" yaml:"kafka"`
+	RabbitMQ        *pkgrabbitmq.Config       `mapstructure:"rabbitmq" yaml:"rabbitmq"`
+	ServiceDiscovery pkgdiscovery.Config       `mapstructure:"service_discovery" yaml:"service_discovery"`
+	Tracing         pkgtracing.Config         `mapstructure:"tracing" yaml:"tracing"`
 }
 
-// HTTPConfig HTTP 服务配置
-type HTTPConfig struct {
-	Host           string        `mapstructure:"host" yaml:"host"`
-	Port           int           `mapstructure:"port" yaml:"port"`
-	ReadTimeout    time.Duration `mapstructure:"read_timeout" yaml:"read_timeout"`
-	WriteTimeout   time.Duration `mapstructure:"write_timeout" yaml:"write_timeout"`
-	IdleTimeout    time.Duration `mapstructure:"idle_timeout" yaml:"idle_timeout"`
-	MaxHeaderBytes int           `mapstructure:"max_header_bytes" yaml:"max_header_bytes"` // 字节
-	MaxBodySize    int           `mapstructure:"max_body_size" yaml:"max_body_size"`       // 字节
-}
-
-// JWTConfig JWT 认证配置
-type JWTConfig struct {
-	Secret  string        `mapstructure:"secret" yaml:"secret"`
-	Expires time.Duration `mapstructure:"expires" yaml:"expires"`
-	Issuer  string        `mapstructure:"issuer" yaml:"issuer"`
-}
-
-// GetDefault 返回全局默认配置
-// 各子配置的默认值由 pkg 层各自的 GetDefault() 提供
-func GetDefault() AppConfig {
+// DefaultConfig 返回全局默认配置
+// 各子配置的默认值由 pkg 层各自的 DefaultConfig() 提供
+func DefaultConfig() AppConfig {
 	return AppConfig{
-		Log: pkglogger.GetDefault(),
-		HTTP: HTTPConfig{
-			Host:           "0.0.0.0",
-			Port:           8080,
-			ReadTimeout:    10 * time.Second,
-			WriteTimeout:   10 * time.Second,
-			IdleTimeout:    60 * time.Second,
-			MaxHeaderBytes: 1 << 20,  // 1MB
-			MaxBodySize:    10 << 20, // 10MB
-		},
-		Database: map[string]database.Config{
-			"default": database.GetDefault(),
-		},
-		Redis: map[string]pkgredis.Config{
-			"default": pkgredis.GetDefault(),
-		},
-		JWT: JWTConfig{
-			Secret:  "change-me-in-production-32chars!",
-			Expires: 24 * time.Hour,
-			Issuer:  "aicode",
-		},
+		Log:             pkglogger.DefaultConfig(),
+		HTTP:            pkghttp.DefaultConfig(),
+		Database:        database.DefaultConfig(),
+		Redis:           pkgredis.DefaultConfig(),
+		JWT:             pkgjwt.DefaultConfig(),
+		ServiceDiscovery: pkgdiscovery.DefaultConfig(),
+		Tracing:         pkgtracing.DefaultConfig(),
 	}
 }

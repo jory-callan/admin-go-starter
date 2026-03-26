@@ -1,59 +1,37 @@
 package database
 
 import (
+	"aicode/pkg/logger"
 	"fmt"
-	"log/slog"
 	"time"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	gormlogger "gorm.io/gorm/logger"
 )
 
-// Config 数据库配置
-type Config struct {
-	Driver            string `mapstructure:"driver" yaml:"driver"`                       // mysql, postgres, sqlite
-	DSN               string `mapstructure:"dsn" yaml:"dsn"`                             // 连接串
-	MaxOpenConns      int    `mapstructure:"max_open_conns" yaml:"max_open_conns"`       // 最大打开连接数
-	MaxIdleConns      int    `mapstructure:"max_idle_conns" yaml:"max_idle_conns"`       // 最大空闲连接数
-	ConnMaxLifetime   int    `mapstructure:"conn_max_lifetime" yaml:"conn_max_lifetime"` // 连接最大存活时间(秒)
-	ConnMaxIdleTime   int    `mapstructure:"conn_max_idle_time" yaml:"conn_max_idle_time"` // 连接最大空闲时间(秒)
-	LogLevel          string `mapstructure:"log_level" yaml:"log_level"`                 // gorm 日志级别
-}
-
-// GetDefault 返回数据库默认配置
-func GetDefault() Config {
-	return Config{
-		Driver:          "sqlite",
-		DSN:             "demo.sqlite.db",
-		MaxOpenConns:    50,
-		MaxIdleConns:    10,
-		ConnMaxLifetime: 1800, // 30 分钟
-		ConnMaxIdleTime: 300,  // 5 分钟
-		LogLevel:        "warn",
-	}
-}
-
 // parseGormLogLevel 将字符串转为 gorm logger level
-func parseGormLogLevel(level string) logger.LogLevel {
+func parseGormLogLevel(level string) gormlogger.LogLevel {
 	switch level {
 	case "silent":
-		return logger.Silent
+		return gormlogger.Silent
 	case "error":
-		return logger.Error
+		return gormlogger.Error
 	case "warn", "warning":
-		return logger.Warn
+		return gormlogger.Warn
 	case "info":
-		return logger.Info
+		return gormlogger.Info
 	default:
-		return logger.Warn
+		return gormlogger.Warn
 	}
 }
 
 // Open 根据 Config 创建 *gorm.DB 实例
-func Open(cfg Config, log *slog.Logger) (*gorm.DB, error) {
+func Open(cfg Config) (*gorm.DB, error) {
+	dbLog := logger.C("database")
+
 	var dialector gorm.Dialector
 
 	switch cfg.Driver {
@@ -68,7 +46,7 @@ func Open(cfg Config, log *slog.Logger) (*gorm.DB, error) {
 	}
 
 	gormCfg := &gorm.Config{
-		Logger: logger.Default.LogMode(parseGormLogLevel(cfg.LogLevel)),
+		Logger: gormlogger.Default.LogMode(parseGormLogLevel(cfg.LogLevel)),
 	}
 
 	db, err := gorm.Open(dialector, gormCfg)
@@ -87,7 +65,7 @@ func Open(cfg Config, log *slog.Logger) (*gorm.DB, error) {
 	sqlDB.SetConnMaxLifetime(time.Duration(cfg.ConnMaxLifetime) * time.Second)
 	sqlDB.SetConnMaxIdleTime(time.Duration(cfg.ConnMaxIdleTime) * time.Second)
 
-	log.Info("database connected", "driver", cfg.Driver)
+	dbLog.Info("connected", "driver", cfg.Driver, "max_open", cfg.MaxOpenConns, "max_idle", cfg.MaxIdleConns)
 
 	return db, nil
 }

@@ -3,44 +3,56 @@ package app
 import (
 	"aicode/pkg/database"
 	"fmt"
+
+	"gorm.io/gorm"
 )
 
 // initDatabases 初始化所有数据库实例
-// 从 App.Config.Database 读取配置，创建 *gorm.DB 并存入 App.Databases 和 App.DB
 func (a *App) initDatabases() error {
-	if len(a.Config.Database) == 0 {
-		a.Log.Warn("no database configured")
-		return nil
-	}
+	cfg := a.Config
 
-	for name, cfg := range a.Config.Database {
-		db, err := database.Open(cfg, a.Log)
+	// 默认主数据库（必填）
+	db, err := database.Open(cfg.Database)
+	if err != nil {
+		return fmt.Errorf("init database: %w", err)
+	}
+	a.DB = db
+	a.registerDBCloser("database", db)
+	a.Log.Info("database initialized", "name", "database", "driver", cfg.Database.Driver)
+
+	// 日志专用数据库（可选）
+	if cfg.LogDatabase != nil {
+		logDB, err := database.Open(*cfg.LogDatabase)
 		if err != nil {
-			return fmt.Errorf("init database[%s]: %w", name, err)
+			return fmt.Errorf("init log_database: %w", err)
 		}
-
-		a.Databases[name] = db
-
-		// 默认实例同时挂载到 App.DB
-		if name == "default" {
-			a.DB = db
-		}
-
-		// 注册关闭钩子
-		a.registerCloser(func() error {
-			sqlDB, err := db.DB()
-			if err != nil {
-				return err
-			}
-			a.Log.Info("closing database", "name", name)
-			return sqlDB.Close()
-		})
+		a.LogDB = logDB
+		a.registerDBCloser("log_database", logDB)
+		a.Log.Info("database initialized", "name", "log_database", "driver", cfg.LogDatabase.Driver)
 	}
 
-	if a.DB == nil {
-		return fmt.Errorf("database 'default' instance is required but not configured")
+	// 分析专用数据库（可选）
+	if cfg.AnalyticsDB != nil {
+		analyticsDB, err := database.Open(*cfg.AnalyticsDB)
+		if err != nil {
+			return fmt.Errorf("init analytics_database: %w", err)
+		}
+		a.AnalyticsDB = analyticsDB
+		a.registerDBCloser("analytics_database", analyticsDB)
+		a.Log.Info("database initialized", "name", "analytics_database", "driver", cfg.AnalyticsDB.Driver)
 	}
 
-	a.Log.Info("all databases initialized", "count", len(a.Databases))
 	return nil
+}
+
+// registerDBCloser 注册数据库关闭钩子
+func (a *App) registerDBCloser(name string, db *gorm.DB) {
+	a.registerCloser(func() error {
+		a.Log.Info("closing database", "name", name)
+		sqlDB, err := db.DB()
+		if err != nil {
+			return err
+		}
+		return sqlDB.Close()
+	})
 }

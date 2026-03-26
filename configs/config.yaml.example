@@ -15,14 +15,14 @@ log:
 # HTTP 服务配置
 # ======================
 http:
-  enableDebug: false
+  enable_debug: false
   host: "0.0.0.0" # 监听地址
   port: 8080 # 监听端口
-  read_timeout: 10s   # 读取请求超时时间
-  write_timeout: 10s  # 写入响应超时时间
-  idle_timeout: 60s   # 空闲连接超时时间
-  max_header_bytes: 1MB   # 最大允许的请求头大小 (支持 KB, MB, GB)
-  max_body_size: 10MB   # 最大允许的请求体大小 (支持 KB, MB, GB)
+  read_timeout: "10s"   # 读取请求超时时间
+  write_timeout: "10s"  # 写入响应超时时间
+  idle_timeout: "60s"   # 空闲连接超时时间
+  max_header_bytes: "1MB"   # 最大允许的请求头大小 (支持 KB, MB, GB)
+  max_body_size: "10MB"   # 最大允许的请求体大小 (支持 KB, MB, GB)
   # CORS 跨域配置
   cors:
     allow_origins: ["https://example.com", "http://localhost:3000"] # 允许的源
@@ -32,7 +32,6 @@ http:
     max_age: 86400 # 预检请求缓存时间(秒)
   # 限流配置 (可选)
   rate_limit:
-         # 是否启用限流
     requests_per_second: 100  # 每秒允许的请求数
     burst: 20           # 突发请求允许的最大数量
 
@@ -46,18 +45,18 @@ database:
   max_open_conns: 100
   max_idle_conns: 10
 
-# 日志专用数据库 (独立配置，语义清晰)
-log_database:
-  driver: "mysql"
-  dsn: "root:password@tcp(127.0.0.1:3306)/log_db?charset=utf8mb4&parseTime=True"
-  max_open_conns: 50
-  max_idle_conns: 5
+# 日志专用数据库 (可选)
+# log_database:
+#   driver: "mysql"
+#   dsn: "root:password@tcp(127.0.0.1:3306)/log_db?charset=utf8mb4&parseTime=True"
+#   max_open_conns: 50
+#   max_idle_conns: 5
 
-# 分析专用数据库 (SQLite 示例)
-analytics_database:
-  driver: "sqlite3"
-  dsn: "./data/analytics.db"
-  max_open_conns: 10
+# 分析专用数据库 (可选)
+# analytics_database:
+#   driver: "sqlite3"
+#   dsn: "./data/analytics.db"
+#   max_open_conns: 10
 
 # ======================
 # Redis 配置 (扁平化显式命名)
@@ -68,32 +67,18 @@ redis:
   db: 0
   pool_size: 100
 
-# 缓存专用 Redis
-cache_redis:
-  addr: "127.0.0.1:6379"
-  db: 1
-  pool_size: 50
+# 缓存专用 Redis (可选)
+# cache_redis:
+#   addr: "127.0.0.1:6379"
+#   db: 1
+#   pool_size: 50
 
-# Session 专用 Redis
-session_redis:
-  addr: "127.0.0.1:6380"
-  password: "sess_pass"
-  db: 2
-  pool_size: 30
-
-# ======================
-# 缓存配置 (支持多 Driver: Redis, Memcached, 本地缓存)
-# ======================
-cache:
-  driver: "redis" # 缓存驱动: redis, memcached, local
-  ttl: 30m # 默认缓存过期时间
-  # 如果是 Redis 驱动
-  # redis_instance: "cache" # 对应 redis_cache
-  # 如果是 Memcached 驱动:
-  # servers: ["127.0.0.1:11211"]
-  # 如果是 Local 驱动:
-  # size: 1000  # 本地缓存最大条目数
-
+# Session 专用 Redis (可选)
+# session_redis:
+#   addr: "127.0.0.1:6380"
+#   password: "sess_pass"
+#   db: 2
+#   pool_size: 30
 
 # ======================
 # JWT 配置
@@ -104,35 +89,37 @@ jwt:
   issuer: "myapp"   # 签发者
 
 # ======================
-# 消息队列 (Kafka / RabbitMQ / 其他)
+# 消息队列 (Kafka / RabbitMQ)
 # ======================
-kafka:
-  brokers: ["127.0.0.1:9092"]  # Kafka Broker 列表
-  topic: "app_events" # 默认 Topic
-  group_id: "app_consumer" # 消费者组 ID
-  partition: 0 # 默认分区
-  offset: "latest" # 消费偏移量: earliest, latest
+# kafka:
+#   brokers: ["127.0.0.1:9092"]
+#   topic: "app_events"
+#   group_id: "app_consumer"
+#   partition: 0
+#   offset: "latest"
 
-rabbitmq:
-  url: "amqp://guest:guest@localhost:5672/"  # RabbitMQ 连接 URL
-  exchange: "app_events" # 默认交换机
-  queue: "app_queue" # 默认队列
+# rabbitmq:
+#   url: "amqp://guest:guest@localhost:5672/"
+#   exchange: "app_events"
+#   queue: "app_queue"
 
 # ======================
 # 服务发现与注册 (如 Consul, Etcd, Nacos)
 # ======================
-service_discovery:
-  driver: "consul"  # 驱动: consul, etcd, nacos
-  address: "127.0.0.1:8500"  # 服务发现服务器地址
-  service_name: "my-go-app"  # 当前服务名称
-  service_port: 8080 # 当前服务端口
-  health_check_path: "/health"  # 健康检查接口路径
+# service_discovery:
+#   enabled: true
+#   driver: "consul"
+#   address: "127.0.0.1:8500"
+#   service_name: "my-go-app"
+#   service_port: 8080
+#   health_check_path: "/health"
 
 # ======================
 # 链路追踪 (如 Jaeger, Zipkin, OpenTelemetry)
 # ======================
-tracing:
-  driver: "jaeger"  # 驱动: jaeger, zipkin, otel
-  endpoint: "http://jaeger:14268/api/traces"  # Jaeger 收集器地址
-  service_name: "my-go-app"
-  sample_rate: 0.1  # 采样率 (0.0 ~ 1.0)
+# tracing:
+#   enabled: true
+#   driver: "jaeger"
+#   endpoint: "http://jaeger:14268/api/traces"
+#   service_name: "my-go-app"
+#   sample_rate: 0.1

@@ -17,16 +17,21 @@ type App struct {
 	// 强类型配置
 	Config *config.AppConfig
 
-	// 全局 Logger（pkg/logger.New() 返回的 slog.Logger）
+	// 全局 Logger
 	Log *slog.Logger
 
-	// === 数据库实例 ===
-	DB        *gorm.DB            // 默认数据库 (database.default)
-	Databases map[string]*gorm.DB // 命名数据库实例
+	// === 数据库实例（扁平化命名） ===
+	DB          *gorm.DB // 默认主数据库 (database)
+	LogDB       *gorm.DB // 日志专用数据库 (log_database)
+	AnalyticsDB *gorm.DB // 分析专用数据库 (analytics_database)
 
-	// === Redis 实例 ===
-	Redis    *redis.Client            // 默认 Redis (redis.default)
-	RedisMap map[string]*redis.Client // 命名 Redis 实例
+	// === Redis 实例（扁平化命名） ===
+	Redis        *redis.Client // 默认 Redis (redis)
+	CacheRedis   *redis.Client // 缓存专用 Redis (cache_redis)
+	SessionRedis *redis.Client // Session 专用 Redis (session_redis)
+
+	// === JWT ===
+	// JWT 已通过 pkg/jwt.Init() 初始化为全局状态
 
 	// 内部关闭钩子（逆序执行）
 	closers []func() error
@@ -35,15 +40,13 @@ type App struct {
 // New 创建 App 实例（不启动任何基础设施）
 func New(cfg *config.AppConfig, log *slog.Logger) *App {
 	return &App{
-		Config:    cfg,
-		Log:       log,
-		Databases: make(map[string]*gorm.DB),
-		RedisMap:  make(map[string]*redis.Client),
-		closers:   make([]func() error, 0),
+		Config:  cfg,
+		Log:     log,
+		closers: make([]func() error, 0),
 	}
 }
 
-// Init 初始化所有基础设施（数据库、Redis 等）
+// Init 初始化所有基础设施（数据库、Redis、JWT 等）
 // 调用后可通过 a.DB / a.Redis 直接使用默认实例
 func (a *App) Init() error {
 	if err := a.initDatabases(); err != nil {
@@ -52,6 +55,7 @@ func (a *App) Init() error {
 	if err := a.initRedis(); err != nil {
 		return err
 	}
+	a.initJWT()
 	return nil
 }
 
@@ -67,7 +71,6 @@ func (a *App) Shutdown() error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
-	// 逆序关闭
 	for i := len(a.closers) - 1; i >= 0; i-- {
 		if err := a.closers[i](); err != nil {
 			a.Log.Error("shutdown error", "index", i, "error", err)

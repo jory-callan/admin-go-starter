@@ -6,37 +6,47 @@ import (
 )
 
 // initRedis 初始化所有 Redis 实例
-// 从 App.Config.Redis 读取配置，创建 *redis.Client 并存入 App.RedisMap 和 App.Redis
 func (a *App) initRedis() error {
-	if len(a.Config.Redis) == 0 {
-		a.Log.Warn("no redis configured")
-		return nil
-	}
+	cfg := a.Config
 
-	for name, cfg := range a.Config.Redis {
-		client, err := redis.Open(cfg, a.Log)
+	// 默认 Redis（必填）
+	rdb, err := redis.Open(cfg.Redis)
+	if err != nil {
+		return fmt.Errorf("init redis: %w", err)
+	}
+	a.Redis = rdb
+	a.registerRedisCloser("redis", rdb)
+	a.Log.Info("redis initialized", "name", "redis", "addr", cfg.Redis.Addr)
+
+	// 缓存专用 Redis（可选）
+	if cfg.CacheRedis != nil {
+		cacheRDB, err := redis.Open(*cfg.CacheRedis)
 		if err != nil {
-			return fmt.Errorf("init redis[%s]: %w", name, err)
+			return fmt.Errorf("init cache_redis: %w", err)
 		}
-
-		a.RedisMap[name] = client
-
-		// 默认实例同时挂载到 App.Redis
-		if name == "default" {
-			a.Redis = client
-		}
-
-		// 注册关闭钩子
-		a.registerCloser(func() error {
-			a.Log.Info("closing redis", "name", name)
-			return client.Close()
-		})
+		a.CacheRedis = cacheRDB
+		a.registerRedisCloser("cache_redis", cacheRDB)
+		a.Log.Info("redis initialized", "name", "cache_redis", "addr", cfg.CacheRedis.Addr)
 	}
 
-	if a.Redis == nil {
-		return fmt.Errorf("redis 'default' instance is required but not configured")
+	// Session 专用 Redis（可选）
+	if cfg.SessionRedis != nil {
+		sessionRDB, err := redis.Open(*cfg.SessionRedis)
+		if err != nil {
+			return fmt.Errorf("init session_redis: %w", err)
+		}
+		a.SessionRedis = sessionRDB
+		a.registerRedisCloser("session_redis", sessionRDB)
+		a.Log.Info("redis initialized", "name", "session_redis", "addr", cfg.SessionRedis.Addr)
 	}
 
-	a.Log.Info("all redis instances initialized", "count", len(a.RedisMap))
 	return nil
+}
+
+// registerRedisCloser 注册 Redis 关闭钩子
+func (a *App) registerRedisCloser(name string, client interface{ Close() error }) {
+	a.registerCloser(func() error {
+		a.Log.Info("closing redis", "name", name)
+		return client.Close()
+	})
 }
