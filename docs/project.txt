@@ -1,0 +1,72 @@
+项目结构概述
+- cmd/: 命令行入口，包含server启动命令
+- config/: 配置文件和配置管理
+- docs/: 文档目录
+- internal/
+  - app/: 基础设施代码，提供全局依赖管理
+  - common/: 通用常量
+  - middleware/: 中间件
+  - router/: 路由管理，组合根
+- pkg/
+  - database/gormutil/: 泛型工具，提供base_repo和base_service
+  - goutils/: 通用工具
+  - http/: HTTP服务相关
+  - jwt/: JWT认证
+  - logx/: 日志工具
+
+核心组件说明
+1. gormutil泛型组件
+- base_model.go: 基础模型，包含通用字段(ID、时间戳等)
+- base_repo.go: 基础仓库层，提供CRUD和批量操作
+- base_service.go: 基础服务层，嵌入base_repo
+- base_handler.go: 基础控制层，快速测试用，生产建议自定义
+- 使用限制: 只允许采纳repo和service层，handler层建议自定义
+
+我已拥有泛型的 BaseRepo 和 BaseService，定义如下（无需重复实现，只需使用）：
+// 泛型 Repo
+type BaseRepo[T any] struct {
+    db *gorm.DB
+}
+GetDB(ctx context.Context) *gorm.DB
+Create(ctx context.Context, entity *T) error { /* impl... */ }
+GetByID(ctx context.Context, id string) (*T, error) { /* impl... */ }
+Update(ctx context.Context, entity *T) error { /* impl... */ }
+Delete(ctx context.Context, id string) error { /* impl... */ }
+CreateBatch(ctx context.Context, entities []*T, batchSize int) error { /* impl... */ }
+DeleteBatch(ctx context.Context, ids []string) error { /* impl... */ }
+Count(ctx context.Context) (int64, error) { /* impl... */ }
+WithTx(tx *gorm.DB) *BaseRepo[T] { /* impl... */ }
+Pagination(ctx context.Context, pq *response.PageQuery, customDB *gorm.DB) (*response.PageResult[T], error) { /* impl... */ }
+PaginationWithScopes(ctx context.Context, pq *response.PageQuery, scopes ...func(*gorm.DB) *gorm.DB) (*response.PageResult[T], error) { /* impl... */ }
+// 泛型 Service (可选，如有)
+type BaseService[T any] struct { repo *BaseRepo[T] }
+
+2. app基础设施
+- app.go: 全局应用实例，管理数据库、JWT、HTTP服务等依赖
+- 依赖注入: 所有模块通过app实例获取依赖
+- 统一初始化: 提供Must函数确保初始化成功
+
+开发流程
+1. 创建模型(Model)
+- 在internal/router/[模块名]/下创建model.go
+- 定义结构体，嵌入gorm.Model或gormutil.BaseModel
+- 定义数据库字段和JSON标签
+
+2. 实现服务层(Service)
+- 创建service.go
+- 定义Service结构体，包含必要依赖
+- 实现业务逻辑方法
+- 复杂业务可组合gormutil.BaseService
+
+3. 实现控制层(Handler)
+- 创建handler.go
+- 定义请求结构体和验证规则
+- 实现API处理方法，调用service层
+- 使用统一响应格式(response包)
+
+开发规范
+- 模块命名: 使用小写单数
+- 包结构: 按功能划分，高内聚低耦合
+- 依赖管理: 通过app实例传递，避免全局变量
+- 错误处理: 使用统一的错误响应格式
+- 日志: 使用logx包记录日志

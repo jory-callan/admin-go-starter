@@ -1,0 +1,19 @@
+server:
+  port: "8080"
+
+logger:
+  level: "info"    # debug / info / warn / error
+  format: "json"   # json / text
+
+database:
+  driver: "sqlite"          # mysql / postgres / sqlite
+  dsn: "demo.sqlite.db"     # sqlite 用文件路径，mysql/postgres 用连接串
+
+redis:
+  addr: "localhost:6379"
+  password: ""
+  db: 0
+
+jwt:
+  secret: "your-secret-key-change-in-production"
+  expire: 24h
