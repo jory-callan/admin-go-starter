@@ -9,8 +9,8 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// Open 根据 Config 创建 *redis.Client 实例
-func Open(cfg Config) (*redis.Client, error) {
+// New 根据 Config 创建 *redis.Client 实例
+func New(cfg Config) *redis.Client {
 	rdLog := logger.C("redis")
 
 	client := redis.NewClient(&redis.Options{
@@ -28,9 +28,9 @@ func Open(cfg Config) (*redis.Client, error) {
 	defer cancel()
 
 	if err := client.Ping(ctx).Err(); err != nil {
-		return nil, fmt.Errorf("failed to connect redis (addr=%s): %w", cfg.Addr, err)
+		panic(fmt.Errorf("failed to connect redis (addr=%s): %w", cfg.Addr, err))
 	}
 
-	rdLog.Info("connected", "addr", cfg.Addr, "db", cfg.DB, "pool_size", cfg.PoolSize)
-	return client, nil
+	rdLog.Info("redis connection established", "addr", cfg.Addr, "db", cfg.DB, "pool_size", cfg.PoolSize)
+	return client
 }

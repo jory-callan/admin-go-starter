@@ -21,11 +21,9 @@ http:
   read_timeout: "10s"   # 读取请求超时时间
   write_timeout: "10s"  # 写入响应超时时间
   idle_timeout: "60s"   # 空闲连接超时时间
-  max_header_bytes: "1MB"   # 最大允许的请求头大小 (支持 KB, MB, GB)
-  max_body_size: "10MB"   # 最大允许的请求体大小 (支持 KB, MB, GB)
   # CORS 跨域配置
   cors:
-    allow_origins: ["https://example.com", "http://localhost:3000"] # 允许的源
+    allow_origins: ["https:#example.com", "http:#localhost:3000"] # 允许的源
     allow_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"] # 允许的 HTTP 方法
     allow_headers: ["Content-Type", "Authorization"] # 允许的请求头
     expose_headers: ["X-Request-ID"] # 暴露给客户端的响应头
@@ -49,14 +47,11 @@ database:
 # log_database:
 #   driver: "mysql"
 #   dsn: "root:password@tcp(127.0.0.1:3306)/log_db?charset=utf8mb4&parseTime=True"
-#   max_open_conns: 50
-#   max_idle_conns: 5
-
-# 分析专用数据库 (可选)
-# analytics_database:
-#   driver: "sqlite3"
-#   dsn: "./data/analytics.db"
-#   max_open_conns: 10
+#	  max_open_conns: 100 # 最大打开连接数
+#	  max_idle_conns: 10 # 最大空闲连接数
+#	  conn_max_lifetime: 1800 # 连接最大存活时间(秒)
+#	  conn_max_idle_time: 300 # 连接最大空闲时间(秒)
+#	  log_level: "warn" # gorm 日志级别: silent, error, warn, info
 
 # ======================
 # Redis 配置 (扁平化显式命名)
@@ -99,12 +94,25 @@ jwt:
 #   offset: "latest"
 
 # rabbitmq:
-#   url: "amqp://guest:guest@localhost:5672/"
+#   url: "amqp:#guest:guest@localhost:5672/"
 #   exchange: "app_events"
 #   queue: "app_queue"
 
 # ======================
-# 服务发现与注册 (如 Consul, Etcd, Nacos)
+# 邮件服务配置
+# ======================
+# email:
+#   smtp_host: "smtp.example.com"     # SMTP 服务器地址
+#   smtp_port: 587                     # SMTP 端口 (25, 465, 587)
+#   username: "noreply@example.com"    # 发件人邮箱
+#   password: "your-smtp-password"     # SMTP 密码或授权码
+#   from_name: "My App"                # 发件人名称
+#   from_email: "noreply@example.com"  # 默认发件人邮箱
+#   use_tls: true                      # 是否启用 TLS
+#   timeout: 10                        # 连接超时时间 (秒)
+
+# ======================
+# 服务发现与注册（如 Consul, Etcd, Nacos）
 # ======================
 # service_discovery:
 #   enabled: true
@@ -120,6 +128,6 @@ jwt:
 # tracing:
 #   enabled: true
 #   driver: "jaeger"
-#   endpoint: "http://jaeger:14268/api/traces"
+#   endpoint: "http:#jaeger:14268/api/traces"
 #   service_name: "my-go-app"
 #   sample_rate: 0.1

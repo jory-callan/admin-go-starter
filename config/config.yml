@@ -2,19 +2,36 @@
 # 基础日志配置
 # ======================
 log:
-  level: "info"
-  format: "json"
-  output: "stdout"
+  level: "info"              # 日志级别: debug, info, warn, error, fatal
+  format: "text"             # 日志格式: json, text
+  output: "stdout"           # 输出目标: stdout, 或文件路径（如 /var/log/app.log）
+  # file_path: "/var/log/app.log"  # 日志文件路径，填了就有文件，没填就没有文件
+  # max_size: 100              # 单个日志文件最大大小(MB)
+  # max_backups: 5             # 保留的旧日志文件数量
+  # max_age: 7                 # 旧日志文件保留天数(天)
+  # compress: true             # 是否压缩旧日志文件
 
 # ======================
 # HTTP 服务配置
 # ======================
 http:
-  host: "0.0.0.0"
-  port: 8080
-  read_timeout: "10s"
-  write_timeout: "10s"
-  idle_timeout: "60s"
+  enable_debug: false
+  host: "0.0.0.0" # 监听地址
+  port: 8080 # 监听端口
+  read_timeout: "10s"   # 读取请求超时时间
+  write_timeout: "10s"  # 写入响应超时时间
+  idle_timeout: "60s"   # 空闲连接超时时间
+  # CORS 跨域配置
+  cors:
+    allow_origins: ["https:#example.com", "http:#localhost:3000"] # 允许的源
+    allow_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"] # 允许的 HTTP 方法
+    allow_headers: ["Content-Type", "Authorization"] # 允许的请求头
+    expose_headers: ["X-Request-ID"] # 暴露给客户端的响应头
+    max_age: 86400 # 预检请求缓存时间(秒)
+  # 限流配置 (可选)
+  rate_limit:
+    requests_per_second: 100  # 每秒允许的请求数
+    burst: 20           # 突发请求允许的最大数量
 
 # ======================
 # 数据库配置
@@ -29,11 +46,14 @@ database:
 # Redis 配置
 # ======================
 redis:
-  addr: "localhost:6379"
-  password: ""
-  db: 0
-  pool_size: 100
-
+  addr: "localhost:6379" # Redis 地址
+  password: "" # Redis 密码
+  db: 0 # 默认数据库
+  pool_size: 100 # 连接池大小
+  min_idle_conns: 10 # 最小空闲连接数
+  dial_timeout: 5 # 连接超时(秒)
+  read_timeout: 3 # 读超时(秒)
+  write_timeout: 3 # 写超时(秒)
 # ======================
 # JWT 配置
 # ======================

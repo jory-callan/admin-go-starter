@@ -13,28 +13,18 @@ import (
 // 通过结构体字段直接访问全局对象，如 app.DB, app.Redis
 type App struct {
 	mu sync.RWMutex
+	// 内部关闭钩子（逆序执行）
+	closers []func() error
 
-	// 强类型配置
+	// 配置
 	Config *config.AppConfig
-
 	// 全局 Logger
-	Log *slog.Logger
-
-	// === 数据库实例（扁平化命名） ===
-	DB          *gorm.DB // 默认主数据库 (database)
-	LogDB       *gorm.DB // 日志专用数据库 (log_database)
-	AnalyticsDB *gorm.DB // 分析专用数据库 (analytics_database)
-
-	// === Redis 实例（扁平化命名） ===
-	Redis        *redis.Client // 默认 Redis (redis)
-	CacheRedis   *redis.Client // 缓存专用 Redis (cache_redis)
-	SessionRedis *redis.Client // Session 专用 Redis (session_redis)
-
+	Log   *slog.Logger
+	DB    *gorm.DB      // 默认主数据库 (database)
+	Redis *redis.Client // 默认 Redis (redis)
 	// === JWT ===
 	// JWT 已通过 pkg/jwt.Init() 初始化为全局状态
 
-	// 内部关闭钩子（逆序执行）
-	closers []func() error
 }
 
 // New 创建 App 实例（不启动任何基础设施）
@@ -48,15 +38,10 @@ func New(cfg *config.AppConfig, log *slog.Logger) *App {
 
 // Init 初始化所有基础设施（数据库、Redis、JWT 等）
 // 调用后可通过 a.DB / a.Redis 直接使用默认实例
-func (a *App) Init() error {
-	if err := a.initDatabases(); err != nil {
-		return err
-	}
-	if err := a.initRedis(); err != nil {
-		return err
-	}
+func (a *App) Start() {
+	a.initDatabases()
+	a.initRedis()
 	a.initJWT()
-	return nil
 }
 
 // registerCloser 注册关闭钩子

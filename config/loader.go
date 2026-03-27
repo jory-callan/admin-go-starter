@@ -76,7 +76,6 @@ func setDefaultsFromStruct(v *viper.Viper, cfg AppConfig) error {
 	v.SetDefault("http.write_timeout", cfg.HTTP.WriteTimeout)
 	v.SetDefault("http.idle_timeout", cfg.HTTP.IdleTimeout)
 	v.SetDefault("http.max_header_bytes", cfg.HTTP.MaxHeaderBytes)
-	v.SetDefault("http.max_body_size", cfg.HTTP.MaxBodySize)
 
 	// Database (默认主库)
 	v.SetDefault("database.driver", cfg.Database.Driver)
@@ -96,6 +95,18 @@ func setDefaultsFromStruct(v *viper.Viper, cfg AppConfig) error {
 	v.SetDefault("redis.dial_timeout", cfg.Redis.DialTimeout)
 	v.SetDefault("redis.read_timeout", cfg.Redis.ReadTimeout)
 	v.SetDefault("redis.write_timeout", cfg.Redis.WriteTimeout)
+
+	// Email
+	if cfg.Email != nil {
+		v.SetDefault("email.smtp_host", cfg.Email.SMTPHost)
+		v.SetDefault("email.smtp_port", cfg.Email.SMTPPort)
+		v.SetDefault("email.username", cfg.Email.Username)
+		v.SetDefault("email.password", cfg.Email.Password)
+		v.SetDefault("email.from_name", cfg.Email.FromName)
+		v.SetDefault("email.from_email", cfg.Email.FromEmail)
+		v.SetDefault("email.use_tls", cfg.Email.UseTLS)
+		v.SetDefault("email.timeout", cfg.Email.Timeout)
+	}
 
 	// JWT
 	v.SetDefault("jwt.secret", cfg.JWT.Secret)

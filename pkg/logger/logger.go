@@ -82,7 +82,7 @@ func New(cfg Config, appName string) *slog.Logger {
 	}
 
 	h := newHandler(writer, cfg)
-	l := slog.New(h).With(slog.String("app", appName))
+	l := slog.New(h)
 	slog.SetDefault(l)
 	return l
 }

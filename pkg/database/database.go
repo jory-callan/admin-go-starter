@@ -28,8 +28,8 @@ func parseGormLogLevel(level string) gormlogger.LogLevel {
 	}
 }
 
-// Open 根据 Config 创建 *gorm.DB 实例
-func Open(cfg Config) (*gorm.DB, error) {
+// New 根据 Config 创建 *gorm.DB 实例
+func New(cfg Config) *gorm.DB {
 	dbLog := logger.C("database")
 
 	var dialector gorm.Dialector
@@ -37,12 +37,12 @@ func Open(cfg Config) (*gorm.DB, error) {
 	switch cfg.Driver {
 	case "mysql":
 		dialector = mysql.Open(cfg.DSN)
-	case "postgres", "postgresql":
+	case "postgres", "postgresql", "pg", "pgsql":
 		dialector = postgres.Open(cfg.DSN)
 	case "sqlite", "sqlite3":
 		dialector = sqlite.Open(cfg.DSN)
 	default:
-		return nil, fmt.Errorf("unsupported database driver: %s", cfg.Driver)
+		panic(fmt.Errorf("unsupported database driver: %s", cfg.Driver))
 	}
 
 	gormCfg := &gorm.Config{
@@ -51,13 +51,13 @@ func Open(cfg Config) (*gorm.DB, error) {
 
 	db, err := gorm.Open(dialector, gormCfg)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect database (driver=%s): %w", cfg.Driver, err)
+		panic(fmt.Errorf("failed to connect database (driver=%s): %w", cfg.Driver, err))
 	}
 
 	// 获取底层 sql.DB 以配置连接池
 	sqlDB, err := db.DB()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get underlying sql.DB: %w", err)
+		panic(fmt.Errorf("failed to get underlying sql.DB: %w", err))
 	}
 
 	sqlDB.SetMaxOpenConns(cfg.MaxOpenConns)
@@ -65,7 +65,7 @@ func Open(cfg Config) (*gorm.DB, error) {
 	sqlDB.SetConnMaxLifetime(time.Duration(cfg.ConnMaxLifetime) * time.Second)
 	sqlDB.SetConnMaxIdleTime(time.Duration(cfg.ConnMaxIdleTime) * time.Second)
 
-	dbLog.Info("connected", "driver", cfg.Driver, "max_open", cfg.MaxOpenConns, "max_idle", cfg.MaxIdleConns)
+	dbLog.Info("database connection established", "driver", cfg.Driver, "max_open", cfg.MaxOpenConns, "max_idle", cfg.MaxIdleConns)
 
-	return db, nil
+	return db
 }

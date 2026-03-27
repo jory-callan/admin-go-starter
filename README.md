@@ -25,6 +25,31 @@
 - **JWT**: [golang-jwt/jwt](https://github.com/golang-jwt/jwt)
 - **日志**: slog
 
+## 🏗️ pkg 层基础设施
+
+项目包含完整的基础设施封装，所有组件都遵循统一的设计模式，生产可用、易扩展、易维护。
+
+### 已完成的组件
+
+| 组件 | 功能 | 状态 |
+|------|------|------|
+| 📦 **Database** | GORM 数据库连接（支持 MySQL/PostgreSQL/SQLite） | ✅ |
+| 🔴 **Redis** | Redis 客户端封装 | ✅ |
+| 📝 **Logger** | 结构化日志（基于 slog，支持 JSON/T ext 格式） | ✅ |
+| 🔐 **JWT** | JWT Token 生成和解析 | ✅ |
+| 📨 **Kafka** | Kafka 生产者和消费者封装 | ✅ |
+| 🐰 **RabbitMQ** | RabbitMQ 发布/订阅封装 | ✅ |
+| 📧 **Email** | SMTP 邮件发送封装 | ✅ |
+| 🌐 **HTTP** | HTTP 服务器（基于 Gin，含中间件） | ✅ |
+| 🔍 **Discovery** | 服务发现（支持 Consul） | ✅ |
+| 🔗 **Tracing** | 链路追踪（OpenTelemetry + Jaeger） | ✅ |
+
+### pkg 层文档
+
+- 📖 [详细使用指南](docs/pkg-usage.md) - 每个组件的完整说明和示例
+- 📋 [快速参考](docs/pkg-cheatsheet.md) - API 速查和最佳实践
+- 📚 [pkg README](pkg/README.md) - pkg 层总览和贡献指南
+
 ## 📁 项目结构
 
 ```
@@ -32,7 +57,11 @@
 ├── cmd                    # 应用入口
 │   └── main.go           # 主程序入口
 ├── config                 # 配置文件
+│   ├── config.go         # 配置结构定义
+│   ├── loader.go         # 配置加载逻辑
 │   └── config.yml        # 默认配置
+├── configs                # 配置示例
+│   └── config.yaml.example  # 完整配置示例
 ├── internal               # 内部业务逻辑
 │   ├── handler           # HTTP 处理器层
 │   ├── service           # 业务逻辑层
@@ -40,14 +69,24 @@
 │   ├── model             # 数据模型层
 │   ├── router            # 路由注册与依赖装配
 │   └── middleware        # 中间件
-└── pkg                    # 基础设施封装
-    ├── app               # App 结构体
-    ├── config            # 配置加载
-    ├── db                # 数据库初始化
-    ├── redis             # Redis 初始化
-    ├── logger            # 日志初始化
-    ├── jwt               # JWT 工具
-    └── uuid              # UUIDv7 工具
+├── pkg                    # 基础设施封装（生产级）
+│   ├── database          # 数据库封装（GORM）
+│   ├── redis             # Redis 封装
+│   ├── logger            # 日志封装（slog）
+│   ├── jwt               # JWT 工具
+│   ├── kafka             # Kafka 封装
+│   ├── rabbitmq          # RabbitMQ 封装
+│   ├── email             # Email 封装
+│   ├── http              # HTTP 服务器（Gin）
+│   ├── discovery         # 服务发现（Consul）
+│   └── tracing           # 链路追踪（OpenTelemetry）
+├── docs                   # 文档
+│   ├── pkg-usage.md      # pkg 层使用指南
+│   ├── pkg-cheatsheet.md # 快速参考
+│   └── COMPLETION_SUMMARY.md  # 完成总结
+└── scripts                # 工具脚本
+    ├── install-deps.sh   # Linux/macOS 依赖安装
+    └── install-deps.ps1  # Windows 依赖安装
 ```
 
 ## 🚀 快速开始

@@ -8,5 +8,5 @@ import (
 // initJWT 初始化 JWT 全局参数
 func (a *App) initJWT() {
 	jwt.Init(a.Config.JWT)
-	slog.Info("initialized", "issuer", a.Config.JWT.Issuer, "expires", a.Config.JWT.Expires)
+	slog.Info("jwt initialized", "issuer", a.Config.JWT.Issuer, "expires", a.Config.JWT.Expires)
 }
