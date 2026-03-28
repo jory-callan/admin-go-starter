@@ -12,6 +12,8 @@ import (
 	gormlogger "gorm.io/gorm/logger"
 )
 
+var dbLog = logger.C("database")
+
 // parseGormLogLevel 将字符串转为 gorm logger level
 func parseGormLogLevel(level string) gormlogger.LogLevel {
 	switch level {
@@ -30,7 +32,6 @@ func parseGormLogLevel(level string) gormlogger.LogLevel {
 
 // New 根据 Config 创建 *gorm.DB 实例
 func New(cfg Config) *gorm.DB {
-	dbLog := logger.C("database")
 
 	var dialector gorm.Dialector
 
@@ -68,4 +69,15 @@ func New(cfg Config) *gorm.DB {
 	dbLog.Info("database connection established", "driver", cfg.Driver, "max_open", cfg.MaxOpenConns, "max_idle", cfg.MaxIdleConns)
 
 	return db
+}
+
+func Shutdown(db *gorm.DB) {
+	if db == nil {
+		return
+	}
+
+	sqlDB, _ := db.DB()
+	if sqlDB != nil {
+		sqlDB.Close()
+	}
 }

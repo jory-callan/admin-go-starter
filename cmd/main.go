@@ -1,15 +1,15 @@
 package main
 
 import (
-	"aicode/app"
+	"context"
+	"fmt"
+
 	"aicode/config"
 	"aicode/info"
 	"aicode/internal"
-	"aicode/internal/router"
-	pkghttp "aicode/pkg/http"
+	"aicode/internal/app/core"
+	"aicode/internal/app/server"
 	pkglogger "aicode/pkg/logger"
-	"context"
-	"fmt"
 
 	"github.com/spf13/cobra"
 )
@@ -31,7 +31,7 @@ func main() {
 }
 
 func run(cmd *cobra.Command, args []string) {
-	// 1. 设置应用信息（全局变量，非配置文件）
+	// 1. 设置应用信息
 	info.AppInfo.Name = "aicode"
 	info.AppInfo.Version = "0.1.0"
 	info.AppInfo.Desc = "Go Web Framework with RBAC"
@@ -39,42 +39,39 @@ func run(cmd *cobra.Command, args []string) {
 	// 打印 Banner
 	fmt.Print(info.AppInfo.PrintBanner())
 
-	// 2. 加载配置 (DefaultConfig + Unmarshal 智能合并)
+	// 2. 加载配置
 	cfg, err := config.Load(configFile)
 	if err != nil {
 		panic(err)
 	}
 
-	// 3. 初始化 Logger（设置全局 slog 默认）
+	// 3. 初始化 Logger
 	log := pkglogger.New(cfg.Log, info.AppInfo.Name)
 
-	// 4. 创建 App 运行时
-	application := app.New(cfg, log)
+	// 4. 创建 Core (基础设施核心)
+	appCore := core.New(cfg, log)
 
 	// 5. 初始化基础设施 (DB, Redis, JWT...)
-	application.Start()
+	appCore.Start()
 
 	// 6. 数据库迁移
-	internal.Migrate(application.DB)
+	internal.Migrate(appCore.DB)
 
-	// 7. 创建 HTTP 服务器
-	server := pkghttp.New(&cfg.HTTP)
-
-	// 8. 注册路由
-	router.RegisterRoutes(server.Engine(), application)
-
+	// 7. 创建 HTTP Server (依赖 Core，注册路由)
 	addr := fmt.Sprintf("%s:%d", cfg.HTTP.Host, cfg.HTTP.Port)
-	log.Info("server starting", "version", info.AppInfo.Version, "addr", addr)
+	httpSrv := server.NewHTTPServer(appCore, addr)
 
-	// 9. 启动服务（非阻塞）
+	// 8. 启动 HTTP Server (非阻塞)
 	go func() {
-		if err := server.Start(); err != nil {
-			log.Error("server stopped", "error", err)
+		if err := httpSrv.Start(); err != nil {
+			log.Error("HTTP server crashed", "error", err)
 		}
 	}()
 
-	// 10. 等待信号并优雅退出
-	application.WaitForSignal(context.Background(), func(ctx context.Context) error {
-		return application.Shutdown()
+	log.Info("server started", "version", info.AppInfo.Version, "addr", addr)
+
+	// 9. 等待信号并优雅退出 (Core 控制信号监听和关闭流程)
+	appCore.WaitForSignal(context.Background(), func(ctx context.Context) error {
+		return httpSrv.Shutdown(ctx)
 	})
 }

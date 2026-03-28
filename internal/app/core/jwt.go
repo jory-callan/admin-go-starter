@@ -1,8 +1,9 @@
-package app
+package core
 
 import (
-	"aicode/pkg/jwt"
 	"log/slog"
+
+	"aicode/pkg/jwt"
 )
 
 // initJWT 初始化 JWT 全局参数

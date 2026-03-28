@@ -5,7 +5,6 @@ import (
 	"aicode/pkg/logger"
 	"context"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -27,9 +26,10 @@ type Server struct {
 	config *Config
 }
 
+var log = logger.C("httpserver")
+
 // New 创建Echo服务器
 func New(cfg *Config) *Server {
-	log := logger.C("httpserver")
 
 	// 创建Echo实例
 	e := echo.New()
@@ -124,28 +124,28 @@ func (s *Server) Start() error {
  URL: http://127.0.0.1:%d
 ========================================
 `
-	slog.Info("http server started success. addr is " + addr)
-	slog.Info(fmt.Sprintf(banner, s.config.Port))
+	log.Info("http server started success. addr is " + addr)
+	log.Info(fmt.Sprintf(banner, s.config.Port))
 	// 打印路由表
 	PrintRoutes(s.echo)
 
 	// 阻塞等待
 	sig := <-quit
-	slog.Info("received signal", "signal", sig.String())
+	log.Info("received signal", "signal", sig.String())
 	s.Shutdown()
 	return <-errCh
 }
 
 func (s *Server) Shutdown() {
-	slog.Info("http server shutting down")
+	log.Info("http server shutting down")
 	ctx, cancel := context.WithTimeout(context.Background(), s.config.ShutdownTimeout)
 	defer cancel()
 	err := s.echo.Shutdown(ctx)
 	if err != nil {
-		slog.Error("http server echo shutdown error", "error", err)
+		log.Error("http server echo shutdown error", "error", err)
 		return
 	}
-	slog.Info("http server stopped")
+	log.Info("http server stopped")
 }
 
 // PrintRoutes 格式化并打印所有 Echo 路由

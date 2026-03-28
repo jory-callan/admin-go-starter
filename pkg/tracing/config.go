@@ -11,11 +11,11 @@ package tracing
 //	  service_name: "my-go-app"                             # 当前服务名称
 //	  sample_rate: 0.1                                      # 采样率 (0.0 ~ 1.0)
 type Config struct {
-	Enabled     bool    `mapstructure:"enabled" yaml:"enabled" json:"enabled"`         // 是否启用
-	Driver      string  `mapstructure:"driver" yaml:"driver" json:"driver"`           // 驱动: jaeger, zipkin, otel
-	Endpoint    string  `mapstructure:"endpoint" yaml:"endpoint" json:"endpoint"`     // 收集器地址
+	Enabled     bool    `mapstructure:"enabled" yaml:"enabled" json:"enabled"`                // 是否启用
+	Driver      string  `mapstructure:"driver" yaml:"driver" json:"driver"`                   // 驱动: jaeger, zipkin, otel
+	Endpoint    string  `mapstructure:"endpoint" yaml:"endpoint" json:"endpoint"`             // 收集器地址
 	ServiceName string  `mapstructure:"service_name" yaml:"service_name" json:"service_name"` // 服务名称
-	SampleRate  float64 `mapstructure:"sample_rate" yaml:"sample_rate" json:"sample_rate"` // 采样率
+	SampleRate  float64 `mapstructure:"sample_rate" yaml:"sample_rate" json:"sample_rate"`    // 采样率
 }
 
 // DefaultConfig 返回链路追踪默认配置

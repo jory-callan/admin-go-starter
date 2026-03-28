@@ -1,7 +1,7 @@
 package router
 
 import (
-	"aicode/app"
+	app "aicode/internal/app/core"
 	"aicode/internal/handler"
 	"aicode/internal/middleware"
 	"aicode/internal/repo"

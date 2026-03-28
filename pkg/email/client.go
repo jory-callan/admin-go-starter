@@ -205,3 +205,7 @@ func joinStrings(strs []string) string {
 	}
 	return result
 }
+
+func Shutdown() {
+
+}

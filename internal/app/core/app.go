@@ -1,9 +1,10 @@
-package app
+package core
 
 import (
-	"aicode/config"
 	"log/slog"
 	"sync"
+
+	"aicode/config"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"

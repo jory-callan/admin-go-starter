@@ -34,3 +34,7 @@ func New(cfg Config) *redis.Client {
 	rdLog.Info("redis connection established", "addr", cfg.Addr, "db", cfg.DB, "pool_size", cfg.PoolSize)
 	return client
 }
+
+func Shutdown(client *redis.Client) error {
+	return client.Close()
+}
