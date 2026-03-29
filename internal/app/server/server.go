@@ -1,32 +1,29 @@
 package server
 
 import (
-	"context"
-	"fmt"
-
 	"aicode/internal/app/core"
 	"aicode/internal/router"
-	"aicode/pkg/logger"
+	"aicode/pkg/http"
+	"context"
+	"fmt"
+	"log/slog"
 
-	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/echo/v4"
+	echoMiddleware "github.com/labstack/echo/v4/middleware"
 )
-
-var log = logger.C("server")
 
 // HTTPServer 应用层 HTTP 服务器封装
 // 依赖 core.App (基础设施)，在 New 时完成中间件和路由注册
 // 由 main.go 组装并管理生命周期
 type HTTPServer struct {
 	engine *echo.Echo
-	addr   string
 	app    *core.App
 }
 
 // NewHTTPServer 创建 HTTP 服务器
 // 接收 core.App，配置中间件并注册所有路由
-func NewHTTPServer(c *core.App, addr string) *HTTPServer {
-	e := echo.New()
+func NewHTTPServer(c *core.App, cfg *http.Config) *HTTPServer {
+	e := http.New(cfg)
 	e.HideBanner = true
 	e.HidePort = true
 	e.Debug = c.Config.HTTP.EnableDebug
@@ -49,29 +46,26 @@ func NewHTTPServer(c *core.App, addr string) *HTTPServer {
 
 	return &HTTPServer{
 		engine: e,
-		addr:   addr,
 		app:    c,
 	}
 }
 
 // Start 启动 HTTP 服务器（阻塞）
 func (s *HTTPServer) Start() error {
-	log.Info("HTTP server starting", "addr", s.addr)
-	return s.engine.Start(s.addr)
+	// 组合 addr
+	addr := fmt.Sprintf("%s:%d", s.app.Config.HTTP.Host, s.app.Config.HTTP.Port)
+	slog.Info("http server started success. addr is " + addr)
+	// 打印路由
+	// http.PrintRoutes(s.engine)
+	return s.engine.Start(addr)
 }
 
-// Shutdown 优雅关闭 HTTP 服务器
-// 调用者传入 context 控制超时时间
-func (s *HTTPServer) Shutdown(ctx context.Context) error {
-	log.Info("HTTP server: starting graceful shutdown...")
+func (s *HTTPServer) Shutdown() {
+	// 优雅关闭 Echo 服务器
+	ctx, cancel := context.WithTimeout(context.Background(), s.app.Config.HTTP.ShutdownTimeout)
+	defer cancel()
 	if err := s.engine.Shutdown(ctx); err != nil {
-		return fmt.Errorf("http shutdown failed: %w", err)
+		slog.Error("server shutdown failed.", "err", err.Error())
 	}
-	log.Info("HTTP server: graceful shutdown completed")
-	return nil
-}
-
-// Addr 返回监听地址
-func (s *HTTPServer) Addr() string {
-	return s.addr
+	slog.Info("server shutdown success")
 }

@@ -1,15 +1,18 @@
 package main
 
 import (
-	"context"
 	"fmt"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"aicode/config"
 	"aicode/info"
-	"aicode/internal"
 	"aicode/internal/app/core"
 	"aicode/internal/app/server"
-	pkglogger "aicode/pkg/logger"
+	"aicode/internal/migration"
+	"aicode/pkg/logger"
 
 	"github.com/spf13/cobra"
 )
@@ -31,7 +34,7 @@ func main() {
 }
 
 func run(cmd *cobra.Command, args []string) {
-	// 1. 设置应用信息
+	// 设置应用信息
 	info.AppInfo.Name = "aicode"
 	info.AppInfo.Version = "0.1.0"
 	info.AppInfo.Desc = "Go Web Framework with RBAC"
@@ -39,39 +42,39 @@ func run(cmd *cobra.Command, args []string) {
 	// 打印 Banner
 	fmt.Print(info.AppInfo.PrintBanner())
 
-	// 2. 加载配置
-	cfg, err := config.Load(configFile)
-	if err != nil {
-		panic(err)
-	}
+	// 加载配置
+	cfg := config.Load(configFile)
 
-	// 3. 初始化 Logger
-	log := pkglogger.New(cfg.Log, info.AppInfo.Name)
+	// 初始化 Logger
+	log := logger.New(cfg.Log, info.AppInfo.Name)
 
-	// 4. 创建 Core (基础设施核心)
+	// 创建 Core (基础设施核心)
 	appCore := core.New(cfg, log)
 
-	// 5. 初始化基础设施 (DB, Redis, JWT...)
+	// 初始化基础设施 (DB, Redis, JWT...)
 	appCore.Start()
 
-	// 6. 数据库迁移
-	internal.Migrate(appCore.DB)
+	// 数据库迁移
+	migration.Migrate(appCore.DB)
 
-	// 7. 创建 HTTP Server (依赖 Core，注册路由)
-	addr := fmt.Sprintf("%s:%d", cfg.HTTP.Host, cfg.HTTP.Port)
-	httpSrv := server.NewHTTPServer(appCore, addr)
+	// 创建 HTTP Server (依赖 Core，注册路由)
+	httpSrv := server.NewHTTPServer(appCore, &cfg.HTTP)
 
-	// 8. 启动 HTTP Server (非阻塞)
+	// 启动 HTTP Server (非阻塞)
 	go func() {
-		if err := httpSrv.Start(); err != nil {
+		if err := httpSrv.Start(); err != nil && err != http.ErrServerClosed {
 			log.Error("HTTP server crashed", "error", err)
+			panic(err) // 仅对真实错误 panic
 		}
 	}()
 
-	log.Info("server started", "version", info.AppInfo.Version, "addr", addr)
+	// 等待信号优雅退出
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+	<-signalChan
 
-	// 9. 等待信号并优雅退出 (Core 控制信号监听和关闭流程)
-	appCore.WaitForSignal(context.Background(), func(ctx context.Context) error {
-		return httpSrv.Shutdown(ctx)
-	})
+	// 关闭 HTTP Server
+	httpSrv.Shutdown()
+	// 关闭 基础设施
+	appCore.Shutdown()
 }

@@ -1,8 +1,7 @@
-package internal
+package migration
 
 import (
 	"aicode/internal/model"
-	"aicode/pkg/logger"
 	"log/slog"
 
 	"gorm.io/gorm"
@@ -12,7 +11,6 @@ var log *slog.Logger
 
 // Migrate 自动迁移表结构
 func Migrate(db *gorm.DB) {
-	log = logger.C("db")
 
 	if err := db.AutoMigrate(
 		&model.User{},
@@ -23,5 +21,5 @@ func Migrate(db *gorm.DB) {
 		panic(err)
 	}
 
-	log.Info("database migrated successfully")
+	slog.Info("database migrated successfully")
 }

@@ -1,9 +1,9 @@
 package redis
 
 import (
-	"aicode/pkg/logger"
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -11,8 +11,6 @@ import (
 
 // New 根据 Config 创建 *redis.Client 实例
 func New(cfg Config) *redis.Client {
-	rdLog := logger.C("redis")
-
 	client := redis.NewClient(&redis.Options{
 		Addr:         cfg.Addr,
 		Password:     cfg.Password,
@@ -31,7 +29,7 @@ func New(cfg Config) *redis.Client {
 		panic(fmt.Errorf("failed to connect redis (addr=%s): %w", cfg.Addr, err))
 	}
 
-	rdLog.Info("redis connection established", "addr", cfg.Addr, "db", cfg.DB, "pool_size", cfg.PoolSize)
+	slog.Info("redis connection established", "addr", cfg.Addr, "db", cfg.DB, "pool_size", cfg.PoolSize)
 	return client
 }
 
