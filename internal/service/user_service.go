@@ -51,16 +51,16 @@ func (s *UserService) Create(ctx context.Context, req *CreateUserRequest, operat
 		UpdatedBy: operatorID,
 	}
 
-	// 分配角色
-	if len(req.RoleIDs) > 0 {
-		var roles []model.Role
-		if err := s.userRepo.DB.WithContext(ctx).Where("id IN ?", req.RoleIDs).Find(&roles).Error; err != nil {
-			return err
-		}
-		user.Roles = roles
+	if err := s.userRepo.Create(ctx, user); err != nil {
+		return err
 	}
 
-	return s.userRepo.Create(ctx, user)
+	// 分配角色
+	if len(req.RoleIDs) > 0 {
+		return s.roleRepo.AssignUserRoles(ctx, user.ID, req.RoleIDs)
+	}
+
+	return nil
 }
 
 // Update 更新用户
@@ -97,16 +97,16 @@ func (s *UserService) Update(ctx context.Context, id string, req *UpdateUserRequ
 		user.Password = hashedPwd
 	}
 
-	// 更新角色
-	if len(req.RoleIDs) > 0 {
-		var roles []model.Role
-		if err := s.userRepo.DB.WithContext(ctx).Where("id IN ?", req.RoleIDs).Find(&roles).Error; err != nil {
-			return err
-		}
-		user.Roles = roles
+	if err := s.userRepo.Update(ctx, user); err != nil {
+		return err
 	}
 
-	return s.userRepo.Update(ctx, user)
+	// 更新角色
+	if len(req.RoleIDs) > 0 {
+		return s.roleRepo.AssignUserRoles(ctx, id, req.RoleIDs)
+	}
+
+	return nil
 }
 
 // Delete 删除用户
@@ -121,16 +121,7 @@ func (s *UserService) Delete(ctx context.Context, id, operatorID string) error {
 
 // AssignRoles 为用户分配角色
 func (s *UserService) AssignRoles(ctx context.Context, userID string, roleIDs []string) error {
-	var user model.User
-	if err := s.userRepo.DB.WithContext(ctx).First(&user, "id = ?", userID).Error; err != nil {
-		return err
-	}
-
-	return s.userRepo.DB.WithContext(ctx).
-		Model(&user).
-		Omit("Roles.*").
-		Association("Roles").
-		Replace(roleIDs)
+	return s.roleRepo.AssignUserRoles(ctx, userID, roleIDs)
 }
 
 // CreateUserRequest 创建用户请求

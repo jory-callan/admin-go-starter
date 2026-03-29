@@ -22,8 +22,6 @@ func NewUserRepo(db *gorm.DB) *UserRepo {
 func (r *UserRepo) GetByUsername(ctx context.Context, username string) (*model.User, error) {
 	var user model.User
 	err := r.DB.WithContext(ctx).
-		Preload("Roles").
-		Preload("Roles.Permissions").
 		Where("username = ?", username).
 		First(&user).Error
 	if err != nil {
@@ -36,8 +34,6 @@ func (r *UserRepo) GetByUsername(ctx context.Context, username string) (*model.U
 func (r *UserRepo) GetByIDWithRoles(ctx context.Context, id string) (*model.User, error) {
 	var user model.User
 	err := r.DB.WithContext(ctx).
-		Preload("Roles").
-		Preload("Roles.Permissions").
 		Where("id = ?", id).
 		First(&user).Error
 	if err != nil {

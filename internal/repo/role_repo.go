@@ -22,7 +22,6 @@ func NewRoleRepo(db *gorm.DB) *RoleRepo {
 func (r *RoleRepo) GetByIDWithPermissions(ctx context.Context, id string) (*model.Role, error) {
 	var role model.Role
 	err := r.DB.WithContext(ctx).
-		Preload("Permissions").
 		Where("id = ?", id).
 		First(&role).Error
 	if err != nil {
@@ -35,7 +34,6 @@ func (r *RoleRepo) GetByIDWithPermissions(ctx context.Context, id string) (*mode
 func (r *RoleRepo) GetByCode(ctx context.Context, code string) (*model.Role, error) {
 	var role model.Role
 	err := r.DB.WithContext(ctx).
-		Preload("Permissions").
 		Where("code = ?", code).
 		First(&role).Error
 	if err != nil {
@@ -73,7 +71,7 @@ func (r *RoleRepo) ListWithPermissions(ctx context.Context, query *model.PageQue
 
 	// 分页
 	offset := (query.Page - 1) * query.Size
-	if err := db.Offset(offset).Limit(query.Size).Preload("Permissions").Find(&items).Error; err != nil {
+	if err := db.Offset(offset).Limit(query.Size).Find(&items).Error; err != nil {
 		return nil, err
 	}
 
@@ -92,17 +90,27 @@ func (r *RoleRepo) ListWithPermissions(ctx context.Context, query *model.PageQue
 	}, nil
 }
 
-// AssignPermissions 为角色分配权限
+// AssignPermissions 为角色分配权限（通过关联表）
 func (r *RoleRepo) AssignPermissions(ctx context.Context, roleID string, permissionIDs []string) error {
-	return r.DB.WithContext(ctx).
-		Model(&model.Role{}).
-		Where("id = ?", roleID).
-		Omit("Permissions.*").
-		Association("Permissions").
-		Replace(permissionIDs)
+	return r.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// 先删除旧的关联
+		if err := tx.Where("role_id = ?", roleID).Delete(&model.RolePermission{}).Error; err != nil {
+			return err
+		}
+		// 插入新的关联
+		for _, permID := range permissionIDs {
+			if err := tx.Create(&model.RolePermission{
+				RoleID:       roleID,
+				PermissionID: permID,
+			}).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
-// GetUserRoles 获取用户的角色
+// GetUserRoles 获取用户的角色（通过关联表）
 func (r *RoleRepo) GetUserRoles(ctx context.Context, userID string) ([]model.Role, error) {
 	var roles []model.Role
 	err := r.DB.WithContext(ctx).
@@ -110,4 +118,34 @@ func (r *RoleRepo) GetUserRoles(ctx context.Context, userID string) ([]model.Rol
 		Where("user_roles.user_id = ?", userID).
 		Find(&roles).Error
 	return roles, err
+}
+
+// AssignUserRoles 为用户分配角色（通过关联表）
+func (r *RoleRepo) AssignUserRoles(ctx context.Context, userID string, roleIDs []string) error {
+	return r.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// 先删除旧的关联
+		if err := tx.Where("user_id = ?", userID).Delete(&model.UserRole{}).Error; err != nil {
+			return err
+		}
+		// 插入新的关联
+		for _, roleID := range roleIDs {
+			if err := tx.Create(&model.UserRole{
+				UserID: userID,
+				RoleID: roleID,
+			}).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+// GetRolePermissions 获取角色的权限（通过关联表）
+func (r *RoleRepo) GetRolePermissions(ctx context.Context, roleID string) ([]model.Permission, error) {
+	var permissions []model.Permission
+	err := r.DB.WithContext(ctx).
+		Joins("JOIN role_permissions ON role_permissions.permission_id = permissions.id").
+		Where("role_permissions.role_id = ? AND permissions.deleted_at IS NULL", roleID).
+		Find(&permissions).Error
+	return permissions, err
 }

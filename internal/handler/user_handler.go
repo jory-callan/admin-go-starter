@@ -3,6 +3,7 @@ package handler
 import (
 	"aicode/internal/model"
 	"aicode/internal/service"
+	"aicode/pkg/goutils/echoutil"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -75,7 +76,8 @@ func (h *UserHandler) Create(c echo.Context) error {
 		return Fail(c, CodeBadRequest, "参数错误")
 	}
 
-	operatorID := c.Get("user_id").(string)
+	operatorID := echoutil.GetUserID(c)
+
 	if err := h.userService.Create(c.Request().Context(), &req, operatorID); err != nil {
 		return Fail(c, CodeInternalError, err.Error())
 	}

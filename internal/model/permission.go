@@ -22,9 +22,8 @@ type Permission struct {
 	Type        int          `gorm:"type:tinyint;default:1;comment:权限类型(1:菜单 2:按钮 3:接口)" json:"type"`
 	Sort        int          `gorm:"type:int;default:0;comment:排序" json:"sort"`
 	Status      int          `gorm:"type:tinyint;default:1;comment:状态(1:正常 2:禁用)" json:"status"`
-	ParentID    string       `gorm:"type:varchar(36);comment:父级ID" json:"parent_id"`
-	Roles       []Role       `gorm:"many2many:role_permissions;comment:权限角色" json:"roles,omitempty"`
-	Children    []Permission `gorm:"foreignKey:ParentID;comment:子权限" json:"children,omitempty"`
+	ParentID string         `gorm:"type:varchar(36);comment:父级ID" json:"parent_id"`
+	Children []Permission  `gorm:"-" json:"children,omitempty"`
 }
 
 func (Permission) TableName() string {

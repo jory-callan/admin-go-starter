@@ -23,7 +23,6 @@ type User struct {
 	Email    string `gorm:"type:varchar(100);comment:邮箱" json:"email"`
 	Phone    string `gorm:"type:varchar(20);comment:手机号" json:"phone"`
 	Status   int    `gorm:"type:tinyint;default:1;comment:状态(1:正常 2:禁用)" json:"status"`
-	Roles    []Role `gorm:"many2many:user_roles;comment:用户角色" json:"roles,omitempty"`
 }
 
 func (User) TableName() string {

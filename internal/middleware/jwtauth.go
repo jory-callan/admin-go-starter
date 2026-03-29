@@ -43,8 +43,6 @@ func (m *Manager) JWTAuth() echo.MiddlewareFunc {
 
 			c.Set("user_id", claims.UserID)
 			c.Set("username", claims.Username)
-			c.Set("roles", claims.Roles)
-			c.Set("permissions", claims.Permissions)
 
 			return next(c)
 		}

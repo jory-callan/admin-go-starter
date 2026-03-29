@@ -18,8 +18,8 @@ const (
 	CodeError   = 500
 )
 
-func Success[T any](c echo.Context, data T) error {
-	return c.JSON(http.StatusOK, ApiResponse[T]{
+func Success(c echo.Context, data any) error {
+	return c.JSON(http.StatusOK, ApiResponse[any]{
 		Code: CodeSuccess,
 		Msg:  "success",
 		Data: data,

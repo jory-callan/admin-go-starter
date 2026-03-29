@@ -44,6 +44,30 @@ func (r *BaseRepo[T]) Update(ctx context.Context, entity *T) error {
 	return db.Save(entity).Error
 }
 
+// UpdateByID 根据主键更新 (Update方式，只更新非零值字段)
+func (r *BaseRepo[T]) UpdateByID(ctx context.Context, entity *T, id string) error {
+	db := r.GetDB(ctx).WithContext(ctx)
+	return db.Model(new(T)).Where("id = ?", id).Updates(entity).Error
+}
+
+// UpdateWithOperator 根据主键更新 (Save方式，会保存所有字段，包括零值)
+func (r *BaseRepo[T]) UpdateWithOperator(ctx context.Context, entity *T, operatorID string) error {
+	db := r.GetDB(ctx).WithContext(ctx)
+	return db.Save(entity).Updates(map[string]interface{}{
+		"updated_by": operatorID,
+		"updated_at": time.Now(),
+	}).Error
+}
+
+// UpdateByIDWithOperator 根据主键更新 (Update方式，只更新非零值字段)
+func (r *BaseRepo[T]) UpdateByIDWithOperator(ctx context.Context, entity *T, id string, operatorID string) error {
+	db := r.GetDB(ctx).WithContext(ctx)
+	return db.Model(new(T)).Where("id = ?", id).Updates(entity).Updates(map[string]interface{}{
+		"updated_by": operatorID,
+		"updated_at": time.Now(),
+	}).Error
+}
+
 // Delete 根据主键删除
 // ctx: 上下文
 // id: 实体主键

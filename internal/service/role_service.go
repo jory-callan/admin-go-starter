@@ -4,7 +4,6 @@ import (
 	"aicode/internal/model"
 	"aicode/internal/repo"
 	"context"
-
 	"gorm.io/gorm"
 )
 
@@ -42,16 +41,16 @@ func (s *RoleService) Create(ctx context.Context, req *CreateRoleRequest, operat
 		UpdatedBy:   operatorID,
 	}
 
-	// 分配权限
-	if len(req.PermissionIDs) > 0 {
-		var permissions []model.Permission
-		if err := s.roleRepo.DB.WithContext(ctx).Where("id IN ?", req.PermissionIDs).Find(&permissions).Error; err != nil {
-			return err
-		}
-		role.Permissions = permissions
+	if err := s.roleRepo.Create(ctx, role); err != nil {
+		return err
 	}
 
-	return s.roleRepo.Create(ctx, role)
+	// 分配权限
+	if len(req.PermissionIDs) > 0 {
+		return s.roleRepo.AssignPermissions(ctx, role.ID, req.PermissionIDs)
+	}
+
+	return nil
 }
 
 // Update 更新角色
@@ -76,15 +75,18 @@ func (s *RoleService) Update(ctx context.Context, id string, req *UpdateRoleRequ
 	}
 	role.UpdatedBy = operatorID
 
+	if err := s.roleRepo.Update(ctx, role); err != nil {
+		return err
+	}
+
 	// 更新权限
-	if len(req.PermissionIDs) >= 0 {
-		err = s.roleRepo.AssignPermissions(ctx, id, req.PermissionIDs)
-		if err != nil {
+	if req.PermissionIDs != nil {
+		if err := s.roleRepo.AssignPermissions(ctx, id, req.PermissionIDs); err != nil {
 			return err
 		}
 	}
 
-	return s.roleRepo.Update(ctx, role)
+	return nil
 }
 
 // Delete 删除角色

@@ -1,0 +1,41 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.db
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# IDE 和编辑器配置
+# .vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# air 或其他热重载工具生成的临时文件
+tmp/
+.air.toml
+
+# 常见工具生成的文件
+dist/
+bin/
+
+# Debug 文件
+debug
+__debug_bin
+__debug_bin*
+
+# 配置文件
+*.yml
+!*.example.yml
