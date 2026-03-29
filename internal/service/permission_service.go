@@ -4,6 +4,8 @@ import (
 	"aicode/internal/model"
 	"aicode/internal/repo"
 	"context"
+
+	"gorm.io/gorm"
 )
 
 // PermissionService 权限服务
@@ -12,9 +14,9 @@ type PermissionService struct {
 }
 
 // NewPermissionService 创建权限服务
-func NewPermissionService(permRepo *repo.PermissionRepo) *PermissionService {
+func NewPermissionService(db *gorm.DB) *PermissionService {
 	return &PermissionService{
-		permRepo: permRepo,
+		permRepo: repo.NewPermissionRepo(db),
 	}
 }
 

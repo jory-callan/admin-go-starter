@@ -3,7 +3,9 @@ package handler
 import (
 	"aicode/internal/model"
 	"aicode/internal/service"
+
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 // AuthHandler 认证处理器
@@ -12,9 +14,9 @@ type AuthHandler struct {
 }
 
 // NewAuthHandler 创建认证处理器
-func NewAuthHandler(authService *service.AuthService) *AuthHandler {
+func NewAuthHandler(db *gorm.DB) *AuthHandler {
 	return &AuthHandler{
-		authService: authService,
+		authService: service.NewAuthService(db),
 	}
 }
 

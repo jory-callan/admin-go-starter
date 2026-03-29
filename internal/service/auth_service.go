@@ -1,11 +1,13 @@
 package service
 
 import (
-	"context"
 	"aicode/internal/model"
 	"aicode/internal/repo"
 	"aicode/pkg/jwt"
+	"context"
+
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 // AuthService 认证服务
@@ -15,10 +17,10 @@ type AuthService struct {
 }
 
 // NewAuthService 创建认证服务
-func NewAuthService(userRepo *repo.UserRepo, roleRepo *repo.RoleRepo) *AuthService {
+func NewAuthService(db *gorm.DB) *AuthService {
 	return &AuthService{
-		userRepo: userRepo,
-		roleRepo: roleRepo,
+		userRepo: repo.NewUserRepo(db),
+		roleRepo: repo.NewRoleRepo(db),
 	}
 }
 
@@ -43,7 +45,7 @@ func (s *AuthService) Login(ctx context.Context, username, password string) (*mo
 	// 收集角色和权限
 	roles := make([]string, 0, len(user.Roles))
 	permissions := make(map[string]bool)
-	
+
 	for _, role := range user.Roles {
 		if role.Status != 1 {
 			continue
@@ -71,13 +73,13 @@ func (s *AuthService) Login(ctx context.Context, username, password string) (*mo
 	return &model.LoginResponse{
 		Token: token,
 		UserInfo: model.UserInfo{
-			ID:         user.ID,
-			Username:   user.Username,
-			Nickname:   user.Nickname,
-			Avatar:     user.Avatar,
-			Email:      user.Email,
-			Phone:      user.Phone,
-			Roles:      roles,
+			ID:          user.ID,
+			Username:    user.Username,
+			Nickname:    user.Nickname,
+			Avatar:      user.Avatar,
+			Email:       user.Email,
+			Phone:       user.Phone,
+			Roles:       roles,
 			Permissions: permList,
 		},
 	}, nil
@@ -93,7 +95,7 @@ func (s *AuthService) GetUserInfo(ctx context.Context, userID string) (*model.Us
 	// 收集角色和权限
 	roles := make([]string, 0, len(user.Roles))
 	permissions := make(map[string]bool)
-	
+
 	for _, role := range user.Roles {
 		if role.Status != 1 {
 			continue
@@ -113,13 +115,13 @@ func (s *AuthService) GetUserInfo(ctx context.Context, userID string) (*model.Us
 	}
 
 	return &model.UserInfo{
-		ID:         user.ID,
-		Username:   user.Username,
-		Nickname:   user.Nickname,
-		Avatar:     user.Avatar,
-		Email:      user.Email,
-		Phone:      user.Phone,
-		Roles:      roles,
+		ID:          user.ID,
+		Username:    user.Username,
+		Nickname:    user.Nickname,
+		Avatar:      user.Avatar,
+		Email:       user.Email,
+		Phone:       user.Phone,
+		Roles:       roles,
 		Permissions: permList,
 	}, nil
 }

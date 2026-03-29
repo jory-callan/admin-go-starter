@@ -4,6 +4,8 @@ import (
 	"aicode/internal/model"
 	"aicode/internal/repo"
 	"context"
+
+	"gorm.io/gorm"
 )
 
 // UserService 用户服务
@@ -13,10 +15,10 @@ type UserService struct {
 }
 
 // NewUserService 创建用户服务
-func NewUserService(userRepo *repo.UserRepo, roleRepo *repo.RoleRepo) *UserService {
+func NewUserService(db *gorm.DB) *UserService {
 	return &UserService{
-		userRepo: userRepo,
-		roleRepo: roleRepo,
+		userRepo: repo.NewUserRepo(db),
+		roleRepo: repo.NewRoleRepo(db),
 	}
 }
 

@@ -3,7 +3,9 @@ package handler
 import (
 	"aicode/internal/model"
 	"aicode/internal/service"
+
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 // UserHandler 用户处理器
@@ -12,9 +14,9 @@ type UserHandler struct {
 }
 
 // NewUserHandler 创建用户处理器
-func NewUserHandler(userService *service.UserService) *UserHandler {
+func NewUserHandler(db *gorm.DB) *UserHandler {
 	return &UserHandler{
-		userService: userService,
+		userService: service.NewUserService(db),
 	}
 }
 

@@ -3,7 +3,9 @@ package handler
 import (
 	"aicode/internal/model"
 	"aicode/internal/service"
+
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 // PermissionHandler 权限处理器
@@ -12,9 +14,9 @@ type PermissionHandler struct {
 }
 
 // NewPermissionHandler 创建权限处理器
-func NewPermissionHandler(permService *service.PermissionService) *PermissionHandler {
+func NewPermissionHandler(db *gorm.DB) *PermissionHandler {
 	return &PermissionHandler{
-		permService: permService,
+		permService: service.NewPermissionService(db),
 	}
 }
 

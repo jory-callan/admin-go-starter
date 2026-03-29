@@ -3,7 +3,9 @@ package handler
 import (
 	"aicode/internal/model"
 	"aicode/internal/service"
+
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 // RoleHandler 角色处理器
@@ -12,9 +14,9 @@ type RoleHandler struct {
 }
 
 // NewRoleHandler 创建角色处理器
-func NewRoleHandler(roleService *service.RoleService) *RoleHandler {
+func NewRoleHandler(db *gorm.DB) *RoleHandler {
 	return &RoleHandler{
-		roleService: roleService,
+		roleService: service.NewRoleService(db),
 	}
 }
 

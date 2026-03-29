@@ -4,6 +4,8 @@ import (
 	"aicode/internal/model"
 	"aicode/internal/repo"
 	"context"
+
+	"gorm.io/gorm"
 )
 
 // RoleService 角色服务
@@ -12,9 +14,9 @@ type RoleService struct {
 }
 
 // NewRoleService 创建角色服务
-func NewRoleService(roleRepo *repo.RoleRepo) *RoleService {
+func NewRoleService(db *gorm.DB) *RoleService {
 	return &RoleService{
-		roleRepo: roleRepo,
+		roleRepo: repo.NewRoleRepo(db),
 	}
 }
 
