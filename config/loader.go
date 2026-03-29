@@ -16,21 +16,21 @@ func Load(configFile string) *AppConfig {
 	v := viper.New()
 	v.SetConfigType("yaml")
 	v.SetConfigType("yml")
-	v.AddConfigPath(".")
 
 	// 环境变量配置，默认前缀为 APP，下划线替换为点号
 	v.AutomaticEnv()
 	v.SetEnvPrefix("APP")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
-	// 2. 查找并读取配置文件，优先级 1. 命令行参数 2. 环境变量 3. 配置文件 config.yaml > config.yml
+	// 2. 查找并读取配置文件，优先级 1. 命令行参数 2. 环境变量
 	if configFile != "" {
 		v.SetConfigFile(configFile)
 	} else {
-		// 默认查找顺序
+		// 默认查找顺序, 优先级 1. 当前目录 2. ./config 3. ./conf
 		for _, p := range []string{".", "./config", "./conf"} {
 			v.AddConfigPath(p)
 		}
+		// 默认配置文件名为 config
 		v.SetConfigName("config")
 	}
 
@@ -39,7 +39,7 @@ func Load(configFile string) *AppConfig {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			panic(fmt.Sprintf("read config: %v", err))
 		}
-		log.Println("配置文件未找到，使用默认配置")
+		log.Println("config file not found, using default configuration")
 	}
 
 	// 3. Unmarshal 到强类型
