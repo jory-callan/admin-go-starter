@@ -62,8 +62,10 @@ func (s *HTTPServer) Start() error {
 	// 组合 addr
 	addr := fmt.Sprintf("%s:%d", s.Core.Config.HTTP.Host, s.Core.Config.HTTP.Port)
 	slog.Info("http server started success. addr is " + addr)
+
 	// 打印路由
-	// http.PrintRoutes(s.engine)
+	http.PrintRoutes(s.Engine)
+
 	return s.Engine.Start(addr)
 }
 

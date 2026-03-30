@@ -15,7 +15,7 @@ type Role struct {
 	DeletedAt gorm.DeletedAt `gorm:"index;comment:删除时间" json:"deleted_at"`
 	DeletedBy string         `gorm:"type:varchar(36);comment:删除人ID" json:"deleted_by"`
 
-	Code string `gorm:"type:varchar(50);not null" json:"code"`
+	Code string `gorm:"type:varchar(50);not null;uniqueIndex" json:"code"`
 	Name string `gorm:"type:varchar(50);not null" json:"name"`
 }
 

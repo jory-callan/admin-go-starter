@@ -108,12 +108,14 @@ func ErrorHandler() echo.HTTPErrorHandler {
 		if c.Request().Method == http.MethodHead {
 			return
 		}
+
 		if errors.As(err, &he) {
 			_ = c.JSON(he.Code, map[string]any{
 				"code": he.Code,
 				"msg":  he.Message,
 				"data": nil,
 			})
+			return
 		}
 
 		expose := c.Request().Header.Get("Debug") == "true" || c.Request().Header.Get("From") == "in"

@@ -17,7 +17,7 @@
 !.vscode/settings.json
 !.vscode/extensions.json
 !.vscode/launch.json
-.idea/
+.idea
 *.swp
 *.swo
 *~

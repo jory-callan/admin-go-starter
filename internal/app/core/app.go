@@ -41,7 +41,6 @@ func New(cfg *config.AppConfig, log *slog.Logger) *App {
 // 调用后可通过 a.DB / a.Redis 直接使用默认实例
 func (a *App) Start() {
 	a.initDatabases()
-	a.initRedis()
 	a.initJWT()
 }
 

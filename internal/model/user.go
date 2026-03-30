@@ -17,7 +17,7 @@ type User struct {
 	DeletedBy string         `gorm:"type:varchar(36);comment:删除人ID" json:"deleted_by"`
 
 	Username string `gorm:"type:varchar(50);not null;uniqueIndex" json:"username"`
-	Password string `gorm:"type:varchar(255);not null" json:"-"`
+	Password string `gorm:"type:varchar(255);not null" json:"password"`
 	Email    string `gorm:"type:varchar(100);uniqueIndex" json:"email"`
 	Phone    string `gorm:"type:varchar(20);uniqueIndex" json:"phone"`
 	Status   int    `gorm:"type:tinyint;default:1;comment:状态:0禁用,1启用" json:"status"`
