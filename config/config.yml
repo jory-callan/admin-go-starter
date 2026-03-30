@@ -23,7 +23,7 @@ http:
   idle_timeout: "60s"   # 空闲连接超时时间
   # CORS 跨域配置
   cors:
-    allow_origins: ["https:#example.com", "http:#localhost:3000"] # 允许的源
+    allow_origins: ["*"] # 允许的源
     allow_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"] # 允许的 HTTP 方法
     allow_headers: ["Content-Type", "Authorization"] # 允许的请求头
     expose_headers: ["X-Request-ID"] # 暴露给客户端的响应头

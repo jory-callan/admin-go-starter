@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"aicode/internal/model"
+	"aicode/pkg/goutils/response"
 	"aicode/pkg/jwt"
 	"strings"
 
@@ -14,7 +14,7 @@ func (m *Manager) JWTAuth() echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			authHeader := c.Request().Header.Get("Authorization")
 			if authHeader == "" {
-				return c.JSON(401, model.Response{
+				return c.JSON(401, response.Response{
 					Code: 401,
 					Msg:  "未提供认证令牌",
 					Data: nil,
@@ -23,7 +23,7 @@ func (m *Manager) JWTAuth() echo.MiddlewareFunc {
 
 			parts := strings.SplitN(authHeader, " ", 2)
 			if len(parts) != 2 || parts[0] != "Bearer" {
-				return c.JSON(401, model.Response{
+				return c.JSON(401, response.Response{
 					Code: 401,
 					Msg:  "认证令牌格式错误",
 					Data: nil,
@@ -34,7 +34,7 @@ func (m *Manager) JWTAuth() echo.MiddlewareFunc {
 
 			claims, err := jwt.ParseToken(token)
 			if err != nil {
-				return c.JSON(401, model.Response{
+				return c.JSON(401, response.Response{
 					Code: 401,
 					Msg:  "认证令牌无效或已过期",
 					Data: nil,

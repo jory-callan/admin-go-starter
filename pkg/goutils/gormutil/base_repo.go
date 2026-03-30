@@ -133,7 +133,7 @@ func (r *BaseRepo[T]) PaginationWithScopes(
 	ctx context.Context,
 	pq *response.PageQuery,
 	scopes ...func(*gorm.DB) *gorm.DB,
-) (*response.PageResult[T], error) {
+) (*response.PageResult, error) {
 
 	if pq == nil {
 		pq = &response.PageQuery{}
@@ -180,7 +180,7 @@ func (r *BaseRepo[T]) PaginationWithScopes(
 	}
 
 	// build result
-	res := &response.PageResult[T]{
+	res := &response.PageResult{
 		Items:   list,
 		Page:    pq.Page,
 		Size:    pq.Size,
@@ -208,7 +208,7 @@ func (r *BaseRepo[T]) Pagination(
 	ctx context.Context,
 	pq *response.PageQuery,
 	customDB *gorm.DB,
-) (*response.PageResult[T], error) {
+) (*response.PageResult, error) {
 
 	if pq == nil {
 		pq = &response.PageQuery{}
@@ -250,7 +250,7 @@ func (r *BaseRepo[T]) Pagination(
 		list = list[:pq.Size]
 	}
 
-	res := &response.PageResult[T]{
+	res := &response.PageResult{
 		Items:   list,
 		Page:    pq.Page,
 		Size:    pq.Size,

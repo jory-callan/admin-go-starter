@@ -31,7 +31,7 @@ func (cm CodeMsg) GetMsg() string {
 
 // 业务成功，返回200状态码，带数据
 func SuccessWithCodeMsg[T any](c echo.Context, cm CodeMsg) error {
-	res := ApiResponse[T]{
+	res := Response{
 		Code: cm.Code,
 		Msg:  cm.Msg,
 	}
@@ -40,7 +40,7 @@ func SuccessWithCodeMsg[T any](c echo.Context, cm CodeMsg) error {
 
 // 业务成功，返回200状态码，带数据
 func SuccessWithCodeMsgWithData[T any](c echo.Context, cm CodeMsg, data T) error {
-	res := ApiResponse[T]{
+	res := Response{
 		Code: cm.Code,
 		Msg:  cm.Msg,
 		Data: data,
@@ -50,7 +50,7 @@ func SuccessWithCodeMsgWithData[T any](c echo.Context, cm CodeMsg, data T) error
 
 // 业务报错，返回200状态码，不带数据
 func ErrorWithCodeMsg[T any](c echo.Context, cm CodeMsg) error {
-	res := ApiResponse[T]{
+	res := Response{
 		Code: cm.Code,
 		Msg:  cm.Msg,
 	}

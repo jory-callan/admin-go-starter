@@ -39,8 +39,8 @@ func DefaultPageQuery() PageQuery {
 }
 
 // PageResult 分页结果（响应 data 里的内容）
-type PageResult[T any] struct {
-	Items      []T    `json:"items"`
+type PageResult struct {
+	Items      any    `json:"items"`
 	Total      int64  `json:"total,omitempty"`
 	Page       int    `json:"page"`
 	Size       int    `json:"size"`
@@ -51,8 +51,8 @@ type PageResult[T any] struct {
 	// Stats      any    `json:"stats,omitempty"`
 }
 
-func NewPageResult[T any](items []T, page, size int, total int64) PageResult[T] {
-	return PageResult[T]{
+func NewPageResult(items []any, page, size int, total int64) PageResult {
+	return PageResult{
 		Items:   items,
 		Page:    page,
 		Size:    size,
@@ -61,8 +61,8 @@ func NewPageResult[T any](items []T, page, size int, total int64) PageResult[T] 
 	}
 }
 
-func SuccessWithPage[T any](c echo.Context, result PageResult[T]) error {
-	return c.JSON(http.StatusOK, ApiResponse[PageResult[T]]{
+func SuccessWithPage(c echo.Context, result PageResult) error {
+	return c.JSON(http.StatusOK, Response{
 		Code: 200,
 		Msg:  "success",
 		Data: result,

@@ -6,7 +6,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// Role 角色表
 type Role struct {
 	ID        string         `gorm:"primaryKey;type:varchar(36);comment:主键ID" json:"id"`
 	CreatedAt time.Time      `gorm:"comment:创建时间" json:"created_at"`
@@ -16,13 +15,17 @@ type Role struct {
 	DeletedAt gorm.DeletedAt `gorm:"index;comment:删除时间" json:"deleted_at"`
 	DeletedBy string         `gorm:"type:varchar(36);comment:删除人ID" json:"deleted_by"`
 
-	Name        string `gorm:"type:varchar(50);comment:角色名称" json:"name"`
-	Code        string `gorm:"type:varchar(50);comment:角色编码" json:"code"`
-	Description string `gorm:"type:varchar(200);comment:角色描述" json:"description"`
-	Sort        int    `gorm:"type:int;default:0;comment:排序" json:"sort"`
-	Status      int    `gorm:"type:tinyint;default:1;comment:状态(1:正常 2:禁用)" json:"status"`
+	Code string `gorm:"type:varchar(50);not null" json:"code"`
+	Name string `gorm:"type:varchar(50);not null" json:"name"`
 }
 
 func (Role) TableName() string {
 	return "roles"
 }
+
+/*
+-- 初始化数据：
+-- 1: admin (全权：创建实例、执行工单、查看所有)
+-- 2: auditor (审计：执行工单、查看所有)
+-- 3: developer (开发：仅查询、提交工单、查看自己工单)
+*/
