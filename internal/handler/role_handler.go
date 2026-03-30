@@ -6,6 +6,7 @@ import (
 	"aicode/internal/app/core"
 	"aicode/internal/model"
 	"aicode/internal/repo"
+	"aicode/pkg/goutils/echoutil"
 	"aicode/pkg/goutils/idutil"
 	"aicode/pkg/goutils/response"
 
@@ -38,6 +39,9 @@ func (h *RoleHandler) Create(c echo.Context) error {
 	}
 
 	ctx := context.Background()
+
+	// 获取当前用户ID
+	req.CreatedBy = echoutil.GetUserID(c)
 
 	// 检查角色编码是否已存在
 	existingRole, err := h.roleRepo.GetByCode(ctx, req.Code)
