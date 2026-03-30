@@ -14,14 +14,14 @@ import (
 
 // RoleHandler 角色处理器
 type RoleHandler struct {
-	core    *core.App
+	core     *core.App
 	roleRepo *repo.RoleRepo
 }
 
 // NewRoleHandler 创建角色处理器
 func NewRoleHandler(core *core.App) *RoleHandler {
 	return &RoleHandler{
-		core:    core,
+		core:     core,
 		roleRepo: repo.NewRoleRepo(core.DB),
 	}
 }
@@ -46,7 +46,7 @@ func (h *RoleHandler) Create(c echo.Context) error {
 	}
 
 	// 生成 ID
-	req.ID = idutil.UUIDv7()
+	req.ID = idutil.ShortUUIDv7()
 
 	if err := h.roleRepo.Create(ctx, &req); err != nil {
 		return response.Error(c, 500, "创建角色失败")

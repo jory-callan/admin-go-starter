@@ -9,8 +9,8 @@ import (
 type PageQuery struct {
 	Page      int         `query:"page" json:"page"` // 当前页，从1开始
 	Size      int         `query:"size" json:"size"`
-	NeedCount bool        `query:"need_count" json:"needCount"` // 是否需要总数（性能敏感场景可关闭）
-	Order     []OrderItem `query:"order" json:"order"`          // 支持多字段排序
+	NeedCount bool        `query:"needCount" json:"needCount"` // 是否需要总数（性能敏感场景可关闭）
+	Order     []OrderItem `query:"order" json:"order"`         // 支持多字段排序
 }
 
 // OrderItem 表示单个排序字段和排序方式

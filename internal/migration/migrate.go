@@ -8,8 +8,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var log *slog.Logger
-
 // Migrate 自动迁移表结构
 func Migrate(db *gorm.DB) {
 
@@ -18,6 +16,10 @@ func Migrate(db *gorm.DB) {
 		&model.User{},
 		&model.Role{},
 		&model.UserRole{},
+		// ticket system
+		&model.Instance{},
+		&model.Ticket{},
+		&model.QueryHistory{},
 	); err != nil {
 		slog.Error("failed to migrate database", "error", err)
 	}
@@ -38,10 +40,28 @@ func SeedDefaultData(db *gorm.DB) {
 		slog.Error("failed to seed admin role", "error", err)
 	}
 
-	// 初始化默认用户 (密码: admin123)
-	// 密码哈希: $2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy
-	// 密码 123456
-	// 哈希：$2a$10$gH6bm5s9tRG72FVMW/nVYeliwqTChISyggta7A4D/5JsRbx6b6iie
+	// 初始化 db 角色 (数据库实例管理)
+	dbRole := model.Role{
+		ID:   "019d394a9ba47243a8bd0d587028de01",
+		Code: "db",
+		Name: "数据库管理员",
+	}
+	if err := db.Create(&dbRole).Error; err != nil {
+		slog.Error("failed to seed db role", "error", err)
+	}
+
+	// 初始化 exec 角色 (工单执行)
+	execRole := model.Role{
+		ID:   "019d394a9ba47243a8bd0d587028de02",
+		Code: "exec",
+		Name: "工单执行者",
+	}
+	if err := db.Create(&execRole).Error; err != nil {
+		slog.Error("failed to seed exec role", "error", err)
+	}
+
+	// 初始化默认用户 (密码: 123456)
+	// 密码哈希: $2a$10$gH6bm5s9tRG72FVMW/nVYeliwqTChISyggta7A4D/5JsRbx6b6iie
 	adminUser := model.User{
 		ID:       "019d3949a8ed75aea9dcdba4a3b8a665",
 		Username: "admin",
@@ -53,7 +73,7 @@ func SeedDefaultData(db *gorm.DB) {
 		slog.Error("failed to seed admin user", "error", err)
 	}
 
-	// 绑定默认管理员用户和角色关系
+	// 绑定默认管理员用户和 admin 角色关系
 	userRole := model.UserRole{
 		UserID: adminUser.ID,
 		RoleID: adminRole.ID,

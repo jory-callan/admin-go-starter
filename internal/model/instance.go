@@ -6,8 +6,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// User 用户模型
-type User struct {
+// Instance 数据库实例模型
+type Instance struct {
 	ID        string         `gorm:"primaryKey;type:varchar(36);comment:主键ID" json:"id"`
 	CreatedAt time.Time      `gorm:"comment:创建时间" json:"created_at"`
 	CreatedBy string         `gorm:"type:varchar(36);comment:创建人ID" json:"created_by"`
@@ -16,13 +16,13 @@ type User struct {
 	DeletedAt gorm.DeletedAt `gorm:"index;comment:删除时间" json:"deleted_at"`
 	DeletedBy string         `gorm:"type:varchar(36);comment:删除人ID" json:"deleted_by"`
 
-	Username string `gorm:"type:varchar(50);not null;uniqueIndex" json:"username"`
-	Password string `gorm:"type:varchar(255);not null" json:"password"`
-	Email    string `gorm:"type:varchar(100);uniqueIndex" json:"email"`
-	Phone    string `gorm:"type:varchar(20);uniqueIndex" json:"phone"`
-	Status   int    `gorm:"type:tinyint;default:1;comment:状态:0禁用,1启用" json:"status"`
+	Name      string `gorm:"type:varchar(100);not null;comment:实例名称" json:"name"`
+	Host      string `gorm:"type:varchar(100);not null;comment:主机地址" json:"host"`
+	Port      int    `gorm:"type:int;not null;comment:端口" json:"port"`
+	AdminUser string `gorm:"type:varchar(50);not null;comment:管理员用户名" json:"admin_user"`
+	AdminPass string `gorm:"type:varchar(255);not null;comment:管理员密码" json:"admin_pass"`
 }
 
-func (User) TableName() string {
-	return "users"
+func (Instance) TableName() string {
+	return "instances"
 }

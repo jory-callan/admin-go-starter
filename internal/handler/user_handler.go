@@ -40,7 +40,7 @@ func (h *UserHandler) Create(c echo.Context) error {
 	}
 
 	// 生成 ID
-	req.ID = idutil.UUIDv7()
+	req.ID = idutil.ShortUUIDv7()
 
 	// 加密密码
 	if req.Password != "" {
@@ -128,7 +128,7 @@ func (h *UserHandler) Delete(c echo.Context) error {
 	}
 
 	ctx := context.Background()
-	operatorID := c.Get("user_id").(string)
+	operatorID := echoutil.GetUserID(c)
 
 	if err := h.userRepo.Delete(ctx, id, operatorID); err != nil {
 		return response.Error(c, 500, "删除用户失败")
@@ -151,7 +151,7 @@ func (h *UserHandler) List(c echo.Context) error {
 	}
 
 	// 将password字段置空
-	for _, user := range result.Items.([]*model.User) {
+	for _, user := range result.Items.([]model.User) {
 		user.Password = ""
 	}
 
@@ -230,6 +230,7 @@ func (h *UserHandler) Register(c echo.Context) error {
 		Email    string `json:"email"`
 		Phone    string `json:"phone"`
 	}
+
 	if err := c.Bind(&req); err != nil {
 		return response.Error(c, 400, "参数错误")
 	}
@@ -248,7 +249,7 @@ func (h *UserHandler) Register(c echo.Context) error {
 
 	// 创建用户
 	user := &model.User{
-		ID:       idutil.UUIDv7(),
+		ID:       idutil.ShortUUIDv7(),
 		Username: req.Username,
 		Email:    req.Email,
 		Phone:    req.Phone,
@@ -275,6 +276,7 @@ func (h *UserHandler) ChangePassword(c echo.Context) error {
 		OldPassword string `json:"old_password"`
 		NewPassword string `json:"new_password"`
 	}
+
 	if err := c.Bind(&req); err != nil {
 		return response.Error(c, 400, "参数错误")
 	}
@@ -326,6 +328,8 @@ func (h *UserHandler) GetCurrentUser(c echo.Context) error {
 	if err != nil {
 		return response.Error(c, 404, "用户不存在")
 	}
+	// 用户密码不能展示
+	user.Password = ""
 
 	// 获取用户角色
 	roles, _ := h.roleRepo.ListByUserID(ctx, userID)
